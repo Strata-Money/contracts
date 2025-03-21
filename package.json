@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "strata",
+  "version": "0.0.1",
+  "description": "Strata Money Contracts",
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Strata-Money/contracts.git"
+  },
+  "author": "Strata Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Strata-Money/contracts/issues"
+  },
+  "homepage": "https://github.com/Strata-Money/contracts#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.19"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
+  }
+}
