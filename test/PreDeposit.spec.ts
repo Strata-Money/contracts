@@ -52,7 +52,7 @@ describe("PreDeposit", function () {
       expect(await mockUSDe.balanceOf(await mockStakedUSDe.getAddress())).to.equal(ONE);
       expect(await mockStakedUSDe.balanceOf(await preDeposit.getAddress())).to.equal(ONE);
 
-      // withdraw staked assets
+      // withdraw as sUSDe
       await (await preDeposit.withdraw(ONE / 2n, owner.address, owner.address)).wait();
       expect(await mockStakedUSDe.balanceOf(owner.address)).to.equal(ONE / 2n);
 
