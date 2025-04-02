@@ -20,26 +20,42 @@ describe("PreDeposit", function () {
     const MockUSDe = await hre.ethers.getContractFactory("MockUSDe");
     const mockUSDe = await MockUSDe.deploy();
 
+    const MockStakedUSDe = await hre.ethers.getContractFactory("MockStakedUSDe");
+    const mockStakedUSDe = await MockStakedUSDe.deploy(await mockUSDe.getAddress(), owner.address, owner.address);
+
     const PreDeposit = await hre.ethers.getContractFactory("StrataPreDepositVault");
-    const preDeposit = await PreDeposit.deploy(owner.address, await mockUSDe.getAddress(), "PreDeposit", "PreTest");
-
-
+    const preDeposit = await PreDeposit.deploy(
+      owner.address,
+      await mockUSDe.getAddress(),
+      await mockStakedUSDe.getAddress(),
+      "PreDeposit",
+      "PreTest"
+    );
 
     await mockUSDe.mint(owner.address, ONE);
     await preDeposit.setDepositsEnabled(true);
+    await preDeposit.setWithdrawalsEnabled(true);
 
-    return { preDeposit, mockUSDe, owner };
+    return { preDeposit, mockUSDe, mockStakedUSDe, owner };
   }
 
   describe("Deployment", function () {
     it("Should deploy contract", async function () {
 
-      const { preDeposit, mockUSDe, owner } = await loadFixture(deployPreDepositFixture);
+      const { preDeposit, mockUSDe, mockStakedUSDe, owner } = await loadFixture(deployPreDepositFixture);
 
-      (await mockUSDe.approve(await preDeposit.getAddress(), ONE)).wait();
-      (await preDeposit.deposit(ONE, owner.address)).wait();
+      await (await mockUSDe.approve(await preDeposit.getAddress(), ONE)).wait();
+      await (await preDeposit.deposit(ONE, owner.address)).wait();
+
 
       expect(await preDeposit.balanceOf(owner.address)).to.equal(ONE);
+      expect(await mockUSDe.balanceOf(await mockStakedUSDe.getAddress())).to.equal(ONE);
+      expect(await mockStakedUSDe.balanceOf(await preDeposit.getAddress())).to.equal(ONE);
+
+      // withdraw staked assets
+      await (await preDeposit.withdraw(ONE / 2n, owner.address, owner.address)).wait();
+      expect(await mockStakedUSDe.balanceOf(owner.address)).to.equal(ONE / 2n);
+
     });
 
   });
