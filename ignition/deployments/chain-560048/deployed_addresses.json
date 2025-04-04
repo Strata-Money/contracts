@@ -1,0 +1,5 @@
+{
+  "TestnetModule#MockUSDe": "0x7054A803361640970176Edbd91992DcC52B7D235",
+  "TestnetModule#MockStakedUSDe": "0x789d3D9AA2EFDda01f0402a632803158F21cCe05",
+  "PreDepositModule#StrataPreDepositVault": "0xaBE28B44a8bD32a0df6Ae784a5F5Ff0a03a57e98"
+}

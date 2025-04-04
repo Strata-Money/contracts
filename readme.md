@@ -12,6 +12,22 @@ Docs
 [docs.strata.money](https://strata-finance.gitbook.io/docs)
 
 
+Deployment + Verification
+----------
+
+```bash
+
+# Testnet Ethena dependencies
+npx hardhat ignition deploy ignition/modules/Testnet.ts --network hoodi
+npx hardhat run ./ignition/verification/TestnetVerify.ts --network hoodi
+
+# Predeposit
+npx hardhat ignition deploy ignition/modules/PreDeposit.ts --network hoodi
+npx hardhat run ./ignition/verification/PreDepositVerify.ts --network hoodi
+
+
+```
+
 Tests
 ----------
 
@@ -20,5 +36,13 @@ To run tests first spin up a ganache-cli instance with unlimited contract size f
 npm run test
 ```
 
+Deployments
+-----------
+
+### Hoodi
+
+- `MockUSDe`: [0x7054A803361640970176Edbd91992DcC52B7D235](https://hoodi.etherscan.io/address/0x7054A803361640970176Edbd91992DcC52B7D235)
+- `MockStakedUSDe`: [0x789d3D9AA2EFDda01f0402a632803158F21cCe05](https://hoodi.etherscan.io/address/0x789d3D9AA2EFDda01f0402a632803158F21cCe05)
+- `PreDepositVault`: [0xaBE28B44a8bD32a0df6Ae784a5F5Ff0a03a57e98](https://hoodi.etherscan.io/address/0xaBE28B44a8bD32a0df6Ae784a5F5Ff0a03a57e98)
 
 ---

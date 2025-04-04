@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
-
 
 interface IsUSDe is IERC4626 {
     // Events //
