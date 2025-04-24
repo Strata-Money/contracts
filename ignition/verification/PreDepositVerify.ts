@@ -1,11 +1,11 @@
 import hre from "hardhat";
-import PreDepositModule from "../modules/PreDeposit";
+import pUSDePreDepositModule from "../modules/pUSDePreDepositModule";
 import { vars } from 'hardhat/config';
 import { Addresses } from '../../src/constants';
 
 async function main() {
 
-    const { preDeposit } = await hre.ignition.deploy(PreDepositModule);
+    const { preDeposit } = await hre.ignition.deploy(pUSDePreDepositModule);
     const [deployer] = await hre.ethers.getSigners();
 
     console.log("🔍 Verifying ...");
