@@ -41,6 +41,7 @@ contract pUSDeVault is IERC4626Yield, PreDepositVault {
     /**
      * @dev All share calculations for minting, depositing, redeeming, and withdrawing are based on the staked USDe amount.
      * This allows us to retain the extra yield received from increasing sUSDe underlying holdings.
+     * @return sUSDe Convert depositedUSDe to current sUSDe amount
      */
     function totalAssets() public view override returns (uint256) {
         return  sUSDe.previewWithdraw(depositedUSDe);
@@ -57,10 +58,6 @@ contract pUSDeVault is IERC4626Yield, PreDepositVault {
         return total_USDe;
     }
 
-    function previewDeposit(uint256 sUSDeAssets) public view override  returns (uint256) {
-        uint USDeAssets = sUSDe.previewRedeem(sUSDeAssets);
-        return _convertToShares(USDeAssets, Math.Rounding.Floor);
-    }
 
     // returns yield in sUSDe
     function previewYield(address caller, uint256 shares) public view virtual returns (uint256) {
