@@ -34,33 +34,45 @@ contract yUSDeVault is PreDepositVault {
         pUSDeVault = pUSDeVault_;
     }
 
-    /**
-     * @dev All share calculations for minting, depositing, redeeming, and withdrawing are based on the staked USDe amount + yield.
-     * This allows us to retain the extra yield received from increasing sUSDe underlying holdings.
-     */
-    function totalAssets() public view override returns (uint256) {
+    function totalAccruedUSDe() public view returns (uint256) {
         uint pUSDeAssets = super.totalAssets();
-        uint USDeAssets = _convertAssetsToUSDe(pUSDeAssets);
+        uint USDeAssets = _convertAssetsToUSDe(pUSDeAssets, true);
         return USDeAssets;
     }
 
-    function _convertAssetsToUSDe (uint pUSDeAssets) internal view returns (uint256) {
-        uint sUSDeAssets = pUSDeVault.previewRedeem(address(this), pUSDeAssets);
+    function _convertAssetsToUSDe (uint pUSDeAssets, bool withYield) internal view returns (uint256) {
+        uint sUSDeAssets = pUSDeVault.previewRedeem(withYield ? address(this) : address(0), pUSDeAssets);
         uint USDeAssets = sUSDe.previewRedeem(sUSDeAssets);
         return USDeAssets;
     }
 
-    // returns shares based on USDeAssets
-    function _convertToShares(uint256 pUSDeAssets, Math.Rounding rounding) internal view override returns (uint256) {
-        uint USDeAssets = _convertAssetsToUSDe(pUSDeAssets);
-        uint yUSDeShares = USDeAssets.mulDiv(totalSupply() + 10 ** _decimalsOffset(), totalAssets() + 1, rounding);
+    /**
+     * @dev Deposit calculation process:
+     * 1. Convert pUSDe to underlying USDe° without yield.
+     * 2. Calculate the equivalent amount of yUSDe shares, considering accrued yield.
+     *    yUSDeShares = (pUSDeAssets → USDe°) * (∑yUSDe / ∑USDe)
+     *
+     * @param pUSDeAssets The amount of pUSDe assets to deposit
+     * @return yUSDeShares The amount of yUSDe shares to be minted
+     */
+    function previewDeposit(uint256 pUSDeAssets) public view override returns (uint256) {
+        uint underlyingUSDe = _convertAssetsToUSDe(pUSDeAssets, false);
+        uint yUSDeShares = _valueMulDiv(underlyingUSDe, totalAssets(), totalAccruedUSDe(), Math.Rounding.Floor);
         return yUSDeShares;
     }
 
-    // returns pUSDeAssets based on shares and USDe amount
-    function _convertToAssets(uint256 yUSDeShares, Math.Rounding rounding) internal view override returns (uint256) {
-        uint USDeAssets = yUSDeShares.mulDiv(totalAssets() + 1, totalSupply() + 10 ** _decimalsOffset(), rounding);
-        uint pUSDeAssets = pUSDeVault.previewWithdraw(USDeAssets);
+    /**
+     * @dev Mint calculation process:
+     * 1. Calculate required USDe to mint X yUSDeShares:
+     *    USDe = yUSDeShares * (totalAccruedUSDe / totalAssets)
+     * 2. Convert USDe to pUSDe
+     *
+     * @param yUSDeShares The amount of yUSDeShares to mint
+     * @return pUSDeAssets The amount of pUSDe assets required to mint the specified yUSDeShares
+     */
+    function previewMint(uint256 yUSDeShares) public view override returns (uint256) {
+        uint underlyingUSDe = _valueMulDiv(yUSDeShares, totalAccruedUSDe(), totalAssets(), Math.Rounding.Ceil);
+        uint pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
         return pUSDeAssets;
     }
 
@@ -71,10 +83,7 @@ contract yUSDeVault is PreDepositVault {
         return super._deposit(caller, receiver, pUSDeAssets, shares);
     }
 
-    function _withdraw(address caller, address receiver, address owner, uint256 pUSDeAssets, uint256 shares)
-        internal
-        override
-    {
+    function _withdraw(address caller, address receiver, address owner, uint256 pUSDeAssets, uint256 shares) internal override {
         if (!withdrawalsEnabled) {
             revert WithdrawalsDisabled();
         }
@@ -87,4 +96,10 @@ contract yUSDeVault is PreDepositVault {
         pUSDeVault.redeem(pUSDeAssets, receiver, address(this));
         emit Withdraw(caller, receiver, owner, pUSDeAssets, shares);
     }
+
+
+    function _valueMulDiv(uint256 value, uint256 mulValue, uint256 divValue, Math.Rounding rounding) internal view virtual returns (uint256) {
+        return value.mulDiv(mulValue + 1, divValue + 1, rounding);
+    }
+
 }
