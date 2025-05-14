@@ -21,7 +21,7 @@ contract MockStakedUSDe is IStakedUSDeCooldown, StakedUSDe {
 
   USDeSilo public immutable silo;
 
-  uint24 public constant MAX_COOLDOWN_DURATION = 90 days;
+  uint24 public constant MAX_COOLDOWN_DURATION = 7 days;
 
   uint24 public cooldownDuration;
 

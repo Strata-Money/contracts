@@ -3,13 +3,17 @@ pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-
-
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ERC4626Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
+import {PreDepositPhase} from "../interfaces/IPhase.sol";
+import {PreDepositPhaser} from "./PreDepositPhaser.sol";
 
-abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable {
+abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, PreDepositPhaser {
+
+    /// @notice Minimum non-zero shares amount to prevent donation attack
+    uint256 private constant MIN_SHARES = 0.1 ether;
+
     bool public depositsEnabled;
     bool public withdrawalsEnabled;
 
@@ -18,9 +22,13 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable {
 
     error DepositsDisabled();
     error WithdrawalsDisabled();
+    /// @notice Error emitted when a small non-zero share amount remains, which risks donations attack
+    error MinSharesViolation();
+
 
     event DepositsStateChanged(bool enabled);
     event WithdrawalsStateChanged(bool enabled);
+
 
     function initialize(
         address owner_
@@ -46,5 +54,19 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable {
     function setWithdrawalsEnabled(bool withdrawalsEnabled_) external onlyOwner {
         withdrawalsEnabled = withdrawalsEnabled_;
         emit WithdrawalsStateChanged(withdrawalsEnabled_);
+    }
+
+    function onAfterDepositChecks () internal view {
+        if (!depositsEnabled) {
+            revert DepositsDisabled();
+        }
+    }
+    function onAfterWithdrawalChecks () internal view {
+        if (!withdrawalsEnabled) {
+            revert WithdrawalsDisabled();
+        }
+        if (totalSupply() < MIN_SHARES) {
+            revert MinSharesViolation();
+        }
     }
 }

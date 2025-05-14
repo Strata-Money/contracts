@@ -5,13 +5,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ISwapRouter} from "../interfaces/ISwapRouter.sol";
 import {IDepositor} from "../interfaces/IDepositor.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-import "hardhat/console.sol";
+import {PreDepositPhase} from "../interfaces/IPhase.sol";
+import {IMetaVault} from "../interfaces/IMetaVault.sol";
+import {PreDepositPhaser} from "./PreDepositPhaser.sol";
 
 contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
@@ -81,10 +80,16 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         if (autoSwaps[address(asset)].router != address(0)) {
             return deposit_viaSwap(user, asset, amount, receiver);
         }
+        IMetaVault vault = IMetaVault(address(pUSDe));
+        if (vault.isAssetSupported(address(asset))) {
+            return vault.deposit(address(asset), amount, receiver);
+        }
         revert InvalidAsset(address(asset));
     }
 
     function deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
+        require(getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
+
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(sUSDe, from, address(this), amount);
         }
@@ -95,25 +100,33 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
     function deposit_USDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
-        uint beforeAmount = sUSDe.balanceOf(address(this));
-
         if (from != address(this)) {
             // Get USDe Tokens
             SafeERC20.safeTransferFrom(USDe, from, address(this), amount);
-        } else {
-            require(beforeAmount >= amount, "Insufficient USDe amount");
         }
 
-        // Deposit USDe Tokens and get sUSDe Tokens
-        USDe.approve(address(sUSDe), amount);
-        sUSDe.deposit(amount, address(this));
+        PreDepositPhase currentPhase = getPhase();
 
-        uint afterAmount = sUSDe.balanceOf(address(this));
-        uint sUSDeAmount = afterAmount - beforeAmount;
-        require(sUSDeAmount > 0, "Deposit underflow");
+        if (PreDepositPhase.YieldPhase == currentPhase) {
+            uint beforeAmount = sUSDe.balanceOf(address(this));
+            // Deposit USDe Tokens and get sUSDe Tokens
+            USDe.approve(address(sUSDe), amount);
+            sUSDe.deposit(amount, address(this));
 
-        // Deposit sUSDe Tokens and transfer pUSDe Tokens to user
-        return deposit_sUSDe(address(this), sUSDeAmount, receiver);
+            uint afterAmount = sUSDe.balanceOf(address(this));
+            uint sUSDeAmount = afterAmount - beforeAmount;
+            require(sUSDeAmount > 0, "Deposit underflow");
+
+            // Deposit sUSDe Tokens and transfer pUSDe Tokens to user
+            return deposit_sUSDe(address(this), sUSDeAmount, receiver);
+        }
+
+        if (PreDepositPhase.PointsPhase == currentPhase) {
+            USDe.approve(address(pUSDe), amount);
+            return pUSDe.deposit(amount, receiver);
+        }
+
+        revert("INVALID_PHASE");
     }
 
     function deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {
@@ -148,4 +161,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
     }
 
+    function getPhase () internal view returns (PreDepositPhase phase) {
+        phase = PreDepositPhaser(address(pUSDe)).currentPhase();
+    }
 }
