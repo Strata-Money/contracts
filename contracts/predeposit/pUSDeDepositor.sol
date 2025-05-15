@@ -82,6 +82,8 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         }
         IMetaVault vault = IMetaVault(address(pUSDe));
         if (vault.isAssetSupported(address(asset))) {
+            SafeERC20.safeTransferFrom(asset, user, address(this), amount);
+            asset.approve(address(vault), amount);
             return vault.deposit(address(asset), amount, receiver);
         }
         revert InvalidAsset(address(asset));
@@ -94,7 +96,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             SafeERC20.safeTransferFrom(sUSDe, from, address(this), amount);
         }
         sUSDe.approve(address(pUSDe), amount);
-        return pUSDe.deposit(amount, receiver);
+        return IMetaVault(address(pUSDe)).deposit(address(sUSDe), amount, receiver);
     }
 
     function deposit_USDe (address from, uint256 amount, address receiver) internal returns (uint256) {
@@ -105,28 +107,8 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             SafeERC20.safeTransferFrom(USDe, from, address(this), amount);
         }
 
-        PreDepositPhase currentPhase = getPhase();
-
-        if (PreDepositPhase.YieldPhase == currentPhase) {
-            uint beforeAmount = sUSDe.balanceOf(address(this));
-            // Deposit USDe Tokens and get sUSDe Tokens
-            USDe.approve(address(sUSDe), amount);
-            sUSDe.deposit(amount, address(this));
-
-            uint afterAmount = sUSDe.balanceOf(address(this));
-            uint sUSDeAmount = afterAmount - beforeAmount;
-            require(sUSDeAmount > 0, "Deposit underflow");
-
-            // Deposit sUSDe Tokens and transfer pUSDe Tokens to user
-            return deposit_sUSDe(address(this), sUSDeAmount, receiver);
-        }
-
-        if (PreDepositPhase.PointsPhase == currentPhase) {
-            USDe.approve(address(pUSDe), amount);
-            return pUSDe.deposit(amount, receiver);
-        }
-
-        revert("INVALID_PHASE");
+        USDe.approve(address(pUSDe), amount);
+        return pUSDe.deposit(amount, receiver);
     }
 
     function deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {

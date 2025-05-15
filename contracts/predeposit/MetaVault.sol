@@ -33,22 +33,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     event OnVaultRemoved(address indexed token);
     event OnMetaDeposit(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
     event OnMetaWithdraw(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
-    event OnBaseTokenChanged(address indexed asset);
 
 
     function isAssetSupported(address token) external view returns (bool) {
         return token == asset() ||assetsMap[token].asset != address(0);
-    }
-
-    /// @dev Change the base Token of the vault. The inherited contract should handle all redeems and deposits if needed.
-    /// For example, when migrating to sUSDe, the contract should deposit USDe into the sUSDe contract.
-    function updateBaseAssetAddress (address asset) internal {
-
-        uint ERC4626StorageLocation = 0x0773e532dfede91f04b12a73d3d2acd361424f41f76b4fb79f090161e36b4e00;
-        assembly {
-            sstore(ERC4626StorageLocation, asset)
-        }
-        emit OnBaseTokenChanged(asset);
     }
 
     /// @notice Converts provided token amount to base amount and increases the total Deposited Base
@@ -118,6 +106,11 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         requireSupportedVault(token);
 
         uint256 baseAssets = IERC4626(token).previewRedeem(tokenAssets);
+        uint256 maxAssets = maxWithdraw(owner);
+        if (baseAssets > maxAssets) {
+            revert ERC4626ExceededMaxWithdraw(owner, baseAssets, maxAssets);
+        }
+
         uint256 shares = previewWithdraw(baseAssets);
         _withdraw(token, _msgSender(), receiver, owner, baseAssets, tokenAssets, shares);
         return shares;
@@ -135,6 +128,11 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
             return withdraw(shares, receiver, owner);
         }
         requireSupportedVault(token);
+
+        uint256 maxShares = maxRedeem(owner);
+        if (shares > maxShares) {
+            revert ERC4626ExceededMaxRedeem(owner, shares, maxShares);
+        }
 
         uint256 baseAssets = previewRedeem(shares);
         uint256 tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
@@ -187,6 +185,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param vaultAddress The address of the ERC4626 Vault to be added
     /// @custom:permissions onlyOwner
     function addVault(address vaultAddress) external onlyOwner {
+        addVaultInner(vaultAddress);
+    }
+
+    function addVaultInner (address vaultAddress) internal {
         TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626);
         assetsMap[vaultAddress] = vault;
         assetsArr.push(vault);

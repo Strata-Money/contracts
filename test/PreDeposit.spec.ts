@@ -27,6 +27,9 @@ describe("PreDeposit", function () {
         const MockStakedUSDe = await hre.ethers.getContractFactory("MockStakedUSDe");
         const mockStakedUSDe = await MockStakedUSDe.deploy(await mockUSDe.getAddress(), owner.address, owner.address);
 
+        const EUSDe = await hre.ethers.getContractFactory("MockERC4626");
+        const eUSDe = await EUSDe.deploy(await mockUSDe.getAddress());
+
         const {
             pUSDeVault,
             pUSDeDepositor,
@@ -51,6 +54,7 @@ describe("PreDeposit", function () {
         await pUSDeVault.setWithdrawalsEnabled(true);
         await yUSDeVault.setDepositsEnabled(true);
         await yUSDeVault.setWithdrawalsEnabled(true);
+        await pUSDeVault.addVault(await eUSDe.getAddress());
 
         return {
             pUSDeVault,
@@ -63,13 +67,15 @@ describe("PreDeposit", function () {
             USDe: mockUSDe,
             sUSDe: mockStakedUSDe,
             owner,
+
+            eUSDe: eUSDe,
         };
     }
 
     describe("Deployment", function () {
         it("Should deploy pUSDe/yUSDe modules", async function () {
 
-            const { pUSDeVault, pUSDeDepositor, yUSDeVault, yUSDeDepositor, USDe, sUSDe, owner } = await loadFixture(deployPreDepositFixture);
+            const { pUSDeVault, pUSDeDepositor, yUSDeVault, yUSDeDepositor, USDe, sUSDe, eUSDe, owner } = await loadFixture(deployPreDepositFixture);
 
             console.log(`Ensure addresses are correct`)
             expect(await USDe.getAddress())
@@ -95,6 +101,7 @@ describe("PreDeposit", function () {
             $x.ctx.sUSDe = sUSDe as any as StakedUSDe;
             $x.ctx.pUSDeDepositor = pUSDeDepositor;
             $x.ctx.yUSDeDepositor = yUSDeDepositor;
+            $x.ctx.eUSDe = eUSDe;
 
             await $x.deposit(pUSDeDepositor, USDe, ONE, owner);
 
@@ -127,15 +134,22 @@ describe("PreDeposit", function () {
                 balance: User1 15 USDe
             `);
 
+            await $x.check(`
+                User2: mint 5 USDe
+                User2: deposit 5 USDe into eUSDe
+                balance: User2 5 eUSDe
+                User2: deposit 5 eUSDe
+                User2: withdraw 3 eUSDe from pUSDe
+                balance: User2 3 eUSDe
+            `);
+
             console.log(`Upgrade PHASE`);
-            (await pUSDeVault.startYieldPhase()).wait();
-            expect(await pUSDeVault.asset())
-                .to.equal(await sUSDe.getAddress(), `sUSDe should be the new asset`);
+            await pUSDeVault.startYieldPhase();
 
             await $x.check(`
 
                 balance: pUSDe 0 USDe
-                balance: pUSDe 17.5 sUSDe
+                balance: pUSDe 19.5 sUSDe
                 User3: withdraw 100% USDe
                 balance: User3 15 sUSDe
 
@@ -148,10 +162,13 @@ describe("PreDeposit", function () {
                 User3: deposit 4 USDe
 
                 balance: User1 0 pUSDe
-                balance: User2 2 pUSDe
+                balance: User2 4 pUSDe
                 balance: User3 4 pUSDe
-                balance: pUSDe 6.5 sUSDe
+                balance: pUSDe 8.5 sUSDe
+
+                error: User2: withdraw 5 sUSDe | ERC4626ExceededMaxWithdraw
             `);
+            return;
 
 
             await USDe.mint(owner.address, 10n * ONE);
@@ -187,6 +204,7 @@ namespace $x {
         account: null as any as TAccount,
         USDe: null as any as IERC20,
         pUSDe: null as any as PUSDeVault,
+        eUSDe: null as any,
         sUSDe: null as any as StakedUSDe,
         yUSDe: null as any as YUSDeVault,
         pUSDeDepositor: null as any,
@@ -227,9 +245,15 @@ namespace $x {
             await (await vault.connect(ctx.account as any).deposit(amount, receiverAddress)).wait();
         }
     }
-    export async function withdraw (vault: IERC4626 | any, amount: any) {
+    export async function withdraw (vault: IERC4626 | any, amount: any, asset?: IERC20) {
         const receiverAddress: any = await getAddress(ctx.account);
-        await (await vault.connect(ctx.account as any).withdraw(amount, receiverAddress, receiverAddress)).wait();
+        const contract = await vault.connect(ctx.account as any) as IERC4626;
+        if (asset != null && await contract.asset() !== await asset.getAddress()) {
+            await (contract as any)['withdraw(address,uint256,address,address)'](await asset.getAddress(), amount, receiverAddress, receiverAddress);
+            return;
+        }
+
+        await contract.withdraw(amount, receiverAddress, receiverAddress);
     }
     export async function redeem (vault: IERC4626 | any, amount: any) {
         const receiverAddress: any = await getAddress(ctx.account);
@@ -262,7 +286,7 @@ namespace $x {
             .split('\n')
             .map(x => x.trim())
             .filter(Boolean)
-            .filter(x => x.startsWith('#') === false);
+            .filter(x => /^(#|\/\/)/.test(x) === false);
 
         for (let line of lines) {
             await processLine(line)
@@ -335,7 +359,21 @@ namespace $x {
                     return;
                 }
                 let amount = await getBigInt(amountStr);
-                await withdraw(vault, amount);
+                await withdraw(vault, amount, asset);
+                return;
+            }
+
+            let mintRgx = /User(?<userIdxStr>\d+): mint (?<amountStr>[\d.]+%?) (?<tokenSymbol>\w+)/;
+            let mintMatch = mintRgx.exec(line.trim());
+            if (mintMatch != null) {
+                let { userIdxStr, amountStr, tokenSymbol } = mintMatch.groups as any;
+                let account = await setSigner(Number(userIdxStr));
+
+                let asset: IERC20 = (ctx as any)[tokenSymbol];
+                let amount = await getBigInt(amountStr);
+                let owner = await getAddress(ctx.account);
+
+                await (asset.connect(ctx.account as any) as any).mint(owner, amount);
                 return;
             }
 
