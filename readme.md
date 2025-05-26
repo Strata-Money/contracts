@@ -46,3 +46,14 @@ Deployments
 - `PreDepositVault`: [0xaBE28B44a8bD32a0df6Ae784a5F5Ff0a03a57e98](https://hoodi.etherscan.io/address/0xaBE28B44a8bD32a0df6Ae784a5F5Ff0a03a57e98)
 
 ---
+
+
+### Foundry Test
+
+Tests can be found in `test/*.t.sol`
+
+```bash
+forge test
+```
+
+---
