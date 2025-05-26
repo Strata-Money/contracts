@@ -5,7 +5,7 @@ import { Addresses } from '../../src/constants';
 
 async function main() {
 
-    const { preDeposit } = await hre.ignition.deploy(pUSDePreDepositModule);
+    const { pUSDeVault } = await hre.ignition.deploy(pUSDePreDepositModule);
     const [deployer] = await hre.ethers.getSigners();
 
     console.log("🔍 Verifying ...");
@@ -18,7 +18,7 @@ async function main() {
 
 
     await hre.run("verify:verify", {
-        address: await preDeposit.getAddress(),
+        address: await pUSDeVault.getAddress(),
         constructorArguments: [
             argOwner,
             argUSDe,

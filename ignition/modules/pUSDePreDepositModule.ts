@@ -75,6 +75,8 @@ const pUSDePreDepositModule = buildModule("pUSDePreDepositModule", (m) => {
         id: 'pUSDeDepositor'
     });
 
+
+
     return {
         pUSDeVault,
         pUSDeVaultLogic,

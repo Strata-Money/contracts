@@ -22,8 +22,8 @@ npx hardhat ignition deploy ignition/modules/Testnet.ts --network hoodi
 npx hardhat run ./ignition/verification/TestnetVerify.ts --network hoodi
 
 # Predeposit
-npx hardhat ignition deploy ignition/modules/PreDeposit.ts --network hoodi
-npx hardhat run ./ignition/verification/PreDepositVerify.ts --network hoodi
+npx hardhat ignition deploy ignition/modules/pUSDePreDepositModule.ts --network hoodi
+npx hardhat run ./ignition/verification/pUSDePreDepositModuleVerify.ts --network hoodi
 
 
 ```
