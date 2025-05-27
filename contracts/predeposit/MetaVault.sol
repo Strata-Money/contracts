@@ -2,11 +2,13 @@
 pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PreDepositVault} from "./PreDepositVault.sol";
 import {IMetaVault} from "../interfaces/IMetaVault.sol";
+import {PreDepositPhase} from "../interfaces/IPhase.sol";
 
 /// @notice Extends ERC4626 Vault to accept multiple additional underlying vaults
 /// @dev The underlying vaults should be without cooldown periods and support immediate deposit/withdraw for the base ERC4626 asset
@@ -185,10 +187,13 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param vaultAddress The address of the ERC4626 Vault to be added
     /// @custom:permissions onlyOwner
     function addVault(address vaultAddress) external onlyOwner {
+        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
         addVaultInner(vaultAddress);
     }
 
     function addVaultInner (address vaultAddress) internal {
+        require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH_GUARDIAN");
+
         TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626);
         assetsMap[vaultAddress] = vault;
         assetsArr.push(vault);
@@ -201,6 +206,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param vaultAddress The address of the ERC4626 Vault to be removed
     /// @custom:permissions onlyOwner
     function removeVault(address vaultAddress) external onlyOwner {
+        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
         requireSupportedVault(vaultAddress);
         removeVaultAndRedeemInner(vaultAddress);
 
