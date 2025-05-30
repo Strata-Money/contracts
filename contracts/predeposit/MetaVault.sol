@@ -128,7 +128,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @return The amount of token assets received
     function redeem(address token, uint256 shares, address receiver, address owner) public virtual returns (uint256) {
         if (token == asset()) {
-            return withdraw(shares, receiver, owner);
+            return redeem(shares, receiver, owner);
         }
         requireSupportedVault(token);
 
