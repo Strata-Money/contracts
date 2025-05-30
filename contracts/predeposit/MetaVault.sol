@@ -39,7 +39,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
 
     function isAssetSupported(address token) external view returns (bool) {
-        return token == asset() ||assetsMap[token].asset != address(0);
+        return token == asset() || assetsMap[token].asset != address(0);
     }
 
     /// @notice Converts provided token amount to base amount and increases the total Deposited Base
@@ -194,6 +194,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
     function addVaultInner (address vaultAddress) internal {
         require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH_GUARDIAN");
+        require(vaultAddress != asset(), "MAIN_ASSET_GUARDIAN");
+        require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET_GUARDIAN");
 
         TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626);
         assetsMap[vaultAddress] = vault;
