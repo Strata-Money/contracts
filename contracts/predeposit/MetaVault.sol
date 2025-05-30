@@ -193,9 +193,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     }
 
     function addVaultInner (address vaultAddress) internal {
-        require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH_GUARDIAN");
-        require(vaultAddress != asset(), "MAIN_ASSET_GUARDIAN");
-        require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET_GUARDIAN");
+        require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH");
+        require(vaultAddress != asset(), "MAIN_ASSET");
+        require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET");
+        require(IERC4626(vaultAddress).asset() == asset(), "MAIN_ASSET_MISMATCH");
 
         TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626);
         assetsMap[vaultAddress] = vault;
