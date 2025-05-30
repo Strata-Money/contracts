@@ -1,0 +1,237 @@
+{
+  "strata-money-contracts/out/pUSDeDepositor.sol/pUSDeDepositor.json": {
+    "functions": [
+      {
+        "signature": "deposit(address,uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,address,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "renounceOwnership()",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferOwnership(address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "updateSwapInfo(address,tuple)",
+        "actor": "actor",
+        "mode": "normal"
+      }
+    ],
+    "separated": true
+  },
+  "strata-money-contracts/out/pUSDeVault.sol/pUSDeVault.json": {
+    "functions": [
+      {
+        "signature": "addVault(address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "approve(address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "deposit(uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "deposit(address,uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,address,address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,string,string,address,address,address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "mint(address,uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "mint(uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "redeem(uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "redeem(address,uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "removeVault(address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "renounceOwnership()",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "setDepositsEnabled(bool)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "setWithdrawalsEnabled(bool)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "startYieldPhase()",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "transfer(address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferFrom(address,address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferOwnership(address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "updateYUSDeVault(address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "withdraw(uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "withdraw(address,uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      }
+    ],
+    "separated": true
+  },
+  "strata-money-contracts/out/yUSDeDepositor.sol/yUSDeDepositor.json": {
+    "functions": [
+      {
+        "signature": "deposit(address,uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,address,address,address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "renounceOwnership()",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferOwnership(address)",
+        "actor": "admin",
+        "mode": "normal"
+      }
+    ],
+    "separated": true
+  },
+  "strata-money-contracts/out/yUSDeVault.sol/yUSDeVault.json": {
+    "functions": [
+      {
+        "signature": "approve(address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "deposit(uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,string,string,address,address,address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address,address,address,address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "mint(uint256,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "redeem(uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "renounceOwnership()",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "setDepositsEnabled(bool)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "setWithdrawalsEnabled(bool)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "transfer(address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferFrom(address,address,uint256)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "transferOwnership(address)",
+        "actor": "admin",
+        "mode": "normal"
+      },
+      {
+        "signature": "withdraw(uint256,address,address)",
+        "actor": "actor",
+        "mode": "normal"
+      }
+    ],
+    "separated": true
+  }
+}
