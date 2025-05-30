@@ -30,6 +30,8 @@ describe("PreDeposit", function () {
         const EUSDe = await hre.ethers.getContractFactory("MockERC4626");
         const eUSDe = await EUSDe.deploy(await mockUSDe.getAddress());
 
+        const xUSDe = await EUSDe.deploy(await mockUSDe.getAddress());
+
         const {
             pUSDeVault,
             pUSDeDepositor,
@@ -55,6 +57,17 @@ describe("PreDeposit", function () {
         await yUSDeVault.setDepositsEnabled(true);
         await yUSDeVault.setWithdrawalsEnabled(true);
         await pUSDeVault.addVault(await eUSDe.getAddress());
+        await pUSDeVault.addVault(await xUSDe.getAddress());
+
+        $x.ctx.account = owner;
+        $x.ctx.USDe = mockUSDe;
+        $x.ctx.pUSDe = pUSDeVault as any as PUSDeVault;
+        $x.ctx.yUSDe = yUSDeVault as any as YUSDeVault;
+        $x.ctx.sUSDe = mockStakedUSDe;
+        $x.ctx.pUSDeDepositor = pUSDeDepositor;
+        $x.ctx.yUSDeDepositor = yUSDeDepositor;
+        $x.ctx.eUSDe = eUSDe;
+        $x.ctx.xUSDe = xUSDe;
 
         return {
             pUSDeVault,
@@ -62,7 +75,6 @@ describe("PreDeposit", function () {
 
             yUSDeVault,
             yUSDeDepositor,
-
 
             USDe: mockUSDe,
             sUSDe: mockStakedUSDe,
@@ -76,6 +88,8 @@ describe("PreDeposit", function () {
         it("Should deploy pUSDe/yUSDe modules", async function () {
 
             const { pUSDeVault, pUSDeDepositor, yUSDeVault, yUSDeDepositor, USDe, sUSDe, eUSDe, owner } = await loadFixture(deployPreDepositFixture);
+
+            console.log(`pUSDe`, await $x.ctx.pUSDe.getAddress());
 
             console.log(`Ensure addresses are correct`)
             expect(await USDe.getAddress())
@@ -94,14 +108,7 @@ describe("PreDeposit", function () {
             expect(await pUSDeVault.getAddress())
                 .to.equal(await yUSDeDepositor.pUSDe(), `invalid pUSDe Address in yUSDeDepositor`);
 
-            $x.ctx.account = owner;
-            $x.ctx.USDe = USDe;
-            $x.ctx.pUSDe = pUSDeVault as any as PUSDeVault;
-            $x.ctx.yUSDe = yUSDeVault as any as YUSDeVault;
-            $x.ctx.sUSDe = sUSDe as any as StakedUSDe;
-            $x.ctx.pUSDeDepositor = pUSDeDepositor;
-            $x.ctx.yUSDeDepositor = yUSDeDepositor;
-            $x.ctx.eUSDe = eUSDe;
+
 
             await $x.deposit(pUSDeDepositor, USDe, ONE, owner);
 
@@ -193,6 +200,31 @@ describe("PreDeposit", function () {
 
         });
 
+        it("Should withdraw from multiple sources", async function () {
+
+            await loadFixture(deployPreDepositFixture);
+
+            await $x.check(`
+                User1: deposit 10 USDe
+                User2: deposit 5 USDe into eUSDe
+                User2: deposit 5 eUSDe
+                User3: deposit 10 USDe into xUSDe
+                User3: deposit 10 xUSDe
+
+                // User1 and User2 withdraw all USDe
+                User2: withdraw 5 USDe
+                User3: withdraw 5 USDe
+                balance: pUSDe 0 USDe
+                User1: withdraw 100% USDe
+                balance: User1 10 USDe
+
+                // By withdrawing USDe by User1, 5 eUSDe and 5 xUSDe should be withdrawn
+                balance: pUSDe 0 eUSDe
+                balance: pUSDe 5 xUSDe
+            `);
+
+        });
+
     });
 
 });
@@ -205,6 +237,7 @@ namespace $x {
         USDe: null as any as IERC20,
         pUSDe: null as any as PUSDeVault,
         eUSDe: null as any,
+        xUSDe: null as any,
         sUSDe: null as any as StakedUSDe,
         yUSDe: null as any as YUSDeVault,
         pUSDeDepositor: null as any,

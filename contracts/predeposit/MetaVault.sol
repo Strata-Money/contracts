@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PreDepositVault} from "./PreDepositVault.sol";
@@ -241,15 +242,22 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     }
 
     /// @dev Internal method to redeem a specific amount of base tokens from supported vaults
-    /// @notice Iterates through supported vaults and redeems assets until the required amount of base tokens is obtained
+    /// @notice Iterates through supported vaults and redeems assets until the required amount of base tokens is obtained.
     /// @param baseTokens The amount of base tokens to redeem
     function redeemRequiredBaseAssets (uint baseTokens) internal {
-        for (uint i = 0; i < assetsArr.length; i++) {
+        uint baseTokensLeft = baseTokens;
+        for (uint i = 0; i < assetsArr.length && baseTokensLeft > 0; i++) {
             IERC4626 vault = IERC4626(assetsArr[i].asset);
-            uint totalBaseTokens = vault.previewRedeem(vault.balanceOf(address(this)));
-            if (totalBaseTokens >= baseTokens) {
-                vault.withdraw(baseTokens, address(this), address(this));
-                break;
+            uint totalBaseTokens = vault.maxWithdraw(address(this));
+            if (totalBaseTokens == 0) {
+                continue;
+            }
+            uint withdrawAmount = Math.min(baseTokensLeft, totalBaseTokens);
+            // In at least one expected edge case: We ignore any withdrawal issues from the 3rd party vault and try the next one.
+            try vault.withdraw(withdrawAmount, address(this), address(this)) {
+                baseTokensLeft -= withdrawAmount;
+            } catch {
+
             }
         }
     }
