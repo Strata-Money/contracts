@@ -90,6 +90,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
     }
 
     function _deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
+        require(amount > 0, "Deposit is zero");
         require(_getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
 
         if (from != address(this)) {
