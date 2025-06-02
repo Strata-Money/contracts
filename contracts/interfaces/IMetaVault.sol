@@ -13,6 +13,7 @@ interface IMetaVault {
     struct TAsset {
         address asset;
         EAssetType kind;
+        bool paused;
     }
 
     function deposit(address token, uint256 tokenAssets, address receiver) external returns (uint256);

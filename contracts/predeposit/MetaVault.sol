@@ -29,11 +29,13 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
     /** Errors */
     error UnsupportedAsset(address asset);
+    error PausedAsset(address asset);
 
 
     /** Events */
     event OnVaultAdded(address indexed token);
     event OnVaultRemoved(address indexed token);
+    event OnVaultPausedStateChanged(address indexed token, bool paused);
     event OnMetaDeposit(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
     event OnMetaWithdraw(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
 
@@ -51,7 +53,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return deposit(tokenAssets, receiver);
         }
-        requireSupportedVault(token);
+        requireActiveVault(token);
 
         uint baseAssets = IERC4626(token).previewRedeem(tokenAssets);
         uint shares = previewDeposit(baseAssets);
@@ -68,7 +70,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return mint(shares, receiver);
         }
-        requireSupportedVault(token);
+        requireActiveVault(token);
 
         uint baseAssets = previewMint(shares);
         uint tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
@@ -181,6 +183,12 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
             revert UnsupportedAsset(token);
         }
     }
+    function requireActiveVault(address token) internal view {
+        requireSupportedVault(token);
+        if (assetsMap[token].paused == true) {
+            revert PausedAsset(token);
+        }
+    }
 
 
     /// @notice Adds an ERC4626 Vault to the list of supported vaults
@@ -198,7 +206,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET");
         require(IERC4626(vaultAddress).asset() == asset(), "MAIN_ASSET_MISMATCH");
 
-        TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626);
+        TAsset memory vault = TAsset(vaultAddress, EAssetType.ERC4626, false);
         assetsMap[vaultAddress] = vault;
         assetsArr.push(vault);
 
@@ -216,6 +224,20 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
         emit OnVaultRemoved(vaultAddress);
     }
+
+    /// @notice Pauses or resumes a single vault during the points phase
+    /// @dev This function allows the owner to temporarily disable or enable specific vaults
+    ///      to mitigate potential issues with underlying vaults
+    /// @param vaultAddress The address of the vault to pause or resume
+    /// @param paused True to pause the vault, false to resume it
+    /// @custom:permissions onlyOwner
+    function setVaultPauseState(address vaultAddress, bool paused) external onlyOwner {
+        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
+        requireSupportedVault(vaultAddress);
+        assetsMap[vaultAddress].paused = paused;
+        emit OnVaultPausedStateChanged(vaultAddress, paused);
+    }
+
     function removeVaultAndRedeemInner (address vaultAddress) internal {
         // Redeem
         uint balance = IERC20(vaultAddress).balanceOf(address(this));
