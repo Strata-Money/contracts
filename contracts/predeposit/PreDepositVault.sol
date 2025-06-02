@@ -46,6 +46,35 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
         sUSDe = sUSDe_;
     }
 
+    /** @dev Extends {IERC4626-maxDeposit} to handle the paused state */
+    function maxDeposit(address owner) public view override returns (uint256) {
+        if (depositsEnabled == false) {
+            return 0;
+        }
+        return super.maxDeposit(owner);
+    }
+    /** @dev Extends {IERC4626-maxMint} to handle the paused state */
+    function maxMint(address owner) public view override returns (uint256) {
+        if (depositsEnabled == false) {
+            return 0;
+        }
+        return super.maxMint(owner);
+    }
+    /** @dev Extends {IERC4626-maxWithdraw} to handle the paused state */
+    function maxWithdraw(address owner) public view override returns (uint256) {
+        if (withdrawalsEnabled == false) {
+            return 0;
+        }
+        return super.maxWithdraw(owner);
+    }
+    /** @dev Extends {IERC4626-maxRedeem} to handle the paused state */
+    function maxRedeem(address owner) public view override returns (uint256) {
+        if (withdrawalsEnabled == false) {
+            return 0;
+        }
+        return super.maxRedeem(owner);
+    }
+
     function setDepositsEnabled(bool depositsEnabled_) external onlyOwner {
         depositsEnabled = depositsEnabled_;
         emit DepositsStateChanged(depositsEnabled_);
