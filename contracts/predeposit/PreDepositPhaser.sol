@@ -9,6 +9,8 @@ abstract contract PreDepositPhaser {
 
     PreDepositPhase public currentPhase;
 
+    uint256[49] private __gap;
+
     event PhaseStarted(PreDepositPhase phase);
 
 

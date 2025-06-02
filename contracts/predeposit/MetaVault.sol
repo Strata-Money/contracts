@@ -26,6 +26,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     // Track the assets in the mapping for easier access
     mapping(address => TAsset) public assetsMap;
 
+    /**
+     * @dev See https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable#storage-gaps
+     */
+    uint256[47] private __gap;
 
     /** Errors */
     error UnsupportedAsset(address asset);

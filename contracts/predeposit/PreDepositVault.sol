@@ -20,6 +20,11 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
     IERC20 public USDe;
     IERC4626 public sUSDe;
 
+    /**
+     * @dev See https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable#storage-gaps
+     */
+    uint256[48] private __gap;
+
     error DepositsDisabled();
     error WithdrawalsDisabled();
     /// @notice Error emitted when a small non-zero share amount remains, which risks donations attack
