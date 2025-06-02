@@ -174,8 +174,9 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         addVaultInner(address(sUSDe));
     }
 
-    function stakeUSDe(uint256 USDeAssets) internal returns (uint256) {
+    function stakeUSDe(uint256 USDeAssets) internal {
+        require(USDeAssets > 0, "EMPTY_STAKE");
         USDe.approve(address(sUSDe), USDeAssets);
-        return sUSDe.deposit(USDeAssets, address(this));
+        sUSDe.deposit(USDeAssets, address(this));
     }
 }
