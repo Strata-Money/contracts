@@ -45,13 +45,13 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
     function deposit(IERC20 asset, uint256 amount, address receiver) external returns (uint256) {
         address user = _msgSender();
         if (asset == pUSDe) {
-            return deposit_pUSDe(user, amount, receiver);
+            return _deposit_pUSDe(user, amount, receiver);
         }
 
-        return deposit_pUSDeDepositor(user, asset, amount, receiver);
+        return _deposit_pUSDeDepositor(user, asset, amount, receiver);
     }
 
-    function deposit_pUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
+    function _deposit_pUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(pUSDe, from, address(this), amount);
         }
@@ -59,7 +59,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
         return yUSDe.deposit(amount, receiver);
     }
 
-    function deposit_pUSDeDepositor (address from, IERC20 asset, uint256 amount, address receiver) internal returns (uint256) {
+    function _deposit_pUSDeDepositor (address from, IERC20 asset, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
         uint beforeAmount = asset.balanceOf(address(this));
@@ -71,7 +71,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
             require(beforeAmount >= amount, "Insufficient USDe amount");
         }
         uint pUSDeShares = pUSDeDepositor.deposit(asset, amount, address(this));
-        return deposit_pUSDe(address(this), pUSDeShares, receiver);
+        return _deposit_pUSDe(address(this), pUSDeShares, receiver);
     }
 
 }

@@ -14,7 +14,7 @@ abstract contract PreDepositPhaser {
     event PhaseStarted(PreDepositPhase phase);
 
 
-    function setYieldPhaseInner () internal {
+    function _setYieldPhaseInner () internal {
         require(currentPhase != PreDepositPhase.YieldPhase, "ACTIVE_PHASE");
 
         currentPhase = PreDepositPhase.YieldPhase;

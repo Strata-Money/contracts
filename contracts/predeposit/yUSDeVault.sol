@@ -81,7 +81,7 @@ contract yUSDeVault is PreDepositVault {
             revert DepositsDisabled();
         }
         super._deposit(caller, receiver, pUSDeAssets, shares);
-        onAfterDepositChecks();
+        _onAfterDepositChecks();
     }
 
     function _withdraw(address caller, address receiver, address owner, uint256 pUSDeAssets, uint256 shares) internal override {
@@ -96,7 +96,7 @@ contract yUSDeVault is PreDepositVault {
         _burn(owner, shares);
         pUSDeVault.redeem(pUSDeAssets, receiver, address(this));
         emit Withdraw(caller, receiver, owner, pUSDeAssets, shares);
-        onAfterWithdrawalChecks();
+        _onAfterWithdrawalChecks();
     }
 
 

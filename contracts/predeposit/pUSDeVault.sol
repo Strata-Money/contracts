@@ -96,10 +96,10 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         super._deposit(caller, receiver, assets, shares);
 
         if (PreDepositPhase.YieldPhase == currentPhase) {
-            stakeUSDe(assets);
+            _stakeUSDe(assets);
         }
         depositedBase += assets;
-        onAfterDepositChecks();
+        _onAfterDepositChecks();
     }
 
     /// @notice Handles withdrawals and updates the deposited USDe balance
@@ -139,11 +139,11 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         uint USDeBalance = USDe.balanceOf(address(this));
         if (assets > USDeBalance) {
             // Transfer-in from multi-vaults
-            redeemRequiredBaseAssets(assets - USDeBalance);
+            _redeemRequiredBaseAssets(assets - USDeBalance);
         }
         depositedBase -= assets;
         super._withdraw(caller, receiver, owner, assets, shares);
-        onAfterWithdrawalChecks();
+        _onAfterWithdrawalChecks();
     }
 
     /// @notice Updates the yUSDe vault address for yield redistribution
@@ -166,16 +166,16 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     /// @custom:phase-transition Transitions the vault from Points Phase to Yield Phase
     function startYieldPhase () external onlyOwner {
 
-        setYieldPhaseInner();
-        redeemMetaVaults();
+        _setYieldPhaseInner();
+        _redeemMetaVaults();
 
         uint USDeBalance = USDe.balanceOf(address(this));
-        stakeUSDe(USDeBalance);
+        _stakeUSDe(USDeBalance);
 
-        addVaultInner(address(sUSDe));
+        _addVaultInner(address(sUSDe));
     }
 
-    function stakeUSDe(uint256 USDeAssets) internal {
+    function _stakeUSDe(uint256 USDeAssets) internal {
         require(USDeAssets > 0, "EMPTY_STAKE");
         SafeERC20.forceApprove(USDe, address(sUSDe), USDeAssets);
         sUSDe.deposit(USDeAssets, address(this));

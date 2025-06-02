@@ -57,7 +57,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return deposit(tokenAssets, receiver);
         }
-        requireActiveVault(token);
+        _requireActiveVault(token);
 
         uint baseAssets = IERC4626(token).previewRedeem(tokenAssets);
         uint shares = previewDeposit(baseAssets);
@@ -74,7 +74,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return mint(shares, receiver);
         }
-        requireActiveVault(token);
+        _requireActiveVault(token);
 
         uint baseAssets = previewMint(shares);
         uint tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
@@ -96,7 +96,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
         SafeERC20.safeTransferFrom(IERC20(token), caller, address(this), tokenAssets);
         _mint(receiver, shares);
-        onAfterDepositChecks();
+        _onAfterDepositChecks();
         emit Deposit(caller, receiver, baseAssets, shares);
         emit OnMetaDeposit(receiver, token, tokenAssets, shares);
     }
@@ -112,7 +112,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return withdraw(tokenAssets, receiver, owner);
         }
-        requireSupportedVault(token);
+        _requireSupportedVault(token);
 
         uint256 baseAssets = IERC4626(token).previewRedeem(tokenAssets);
         uint256 maxAssets = maxWithdraw(owner);
@@ -136,7 +136,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         if (token == asset()) {
             return redeem(shares, receiver, owner);
         }
-        requireSupportedVault(token);
+        _requireSupportedVault(token);
 
         uint256 maxShares = maxRedeem(owner);
         if (shares > maxShares) {
@@ -175,20 +175,20 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
         _burn(owner, shares);
         SafeERC20.safeTransfer(IERC20(token), receiver, tokenAssets);
-        onAfterWithdrawalChecks();
+        _onAfterWithdrawalChecks();
 
         emit Withdraw(caller, receiver, owner, baseAssets, shares);
         emit OnMetaWithdraw(receiver, token, tokenAssets, shares);
     }
 
-    function requireSupportedVault(address token) internal view {
+    function _requireSupportedVault(address token) internal view {
         address vaultAddress = assetsMap[token].asset;
         if (vaultAddress == address(0)) {
             revert UnsupportedAsset(token);
         }
     }
-    function requireActiveVault(address token) internal view {
-        requireSupportedVault(token);
+    function _requireActiveVault(address token) internal view {
+        _requireSupportedVault(token);
         if (assetsMap[token].paused == true) {
             revert PausedAsset(token);
         }
@@ -201,10 +201,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @custom:permissions onlyOwner
     function addVault(address vaultAddress) external onlyOwner {
         require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
-        addVaultInner(vaultAddress);
+        _addVaultInner(vaultAddress);
     }
 
-    function addVaultInner (address vaultAddress) internal {
+    function _addVaultInner (address vaultAddress) internal {
         require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH");
         require(vaultAddress != asset(), "MAIN_ASSET");
         require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET");
@@ -223,8 +223,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @custom:permissions onlyOwner
     function removeVault(address vaultAddress) external onlyOwner {
         require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
-        requireSupportedVault(vaultAddress);
-        removeVaultAndRedeemInner(vaultAddress);
+        _requireSupportedVault(vaultAddress);
+        _removeVaultAndRedeemInner(vaultAddress);
 
         emit OnVaultRemoved(vaultAddress);
     }
@@ -237,12 +237,12 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @custom:permissions onlyOwner
     function setVaultPauseState(address vaultAddress, bool paused) external onlyOwner {
         require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
-        requireSupportedVault(vaultAddress);
+        _requireSupportedVault(vaultAddress);
         assetsMap[vaultAddress].paused = paused;
         emit OnVaultPausedStateChanged(vaultAddress, paused);
     }
 
-    function removeVaultAndRedeemInner (address vaultAddress) internal {
+    function _removeVaultAndRedeemInner (address vaultAddress) internal {
         // Redeem
         uint balance = IERC20(vaultAddress).balanceOf(address(this));
         if (balance > 0) {
@@ -264,16 +264,16 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
     /// @dev Internal method to redeem all assets from supported vaults
     /// @notice Iterates through all supported vaults and redeems their assets for the base token
-    function redeemMetaVaults () internal {
+    function _redeemMetaVaults () internal {
         while (assetsArr.length > 0) {
-            removeVaultAndRedeemInner(assetsArr[0].asset);
+            _removeVaultAndRedeemInner(assetsArr[0].asset);
         }
     }
 
     /// @dev Internal method to redeem a specific amount of base tokens from supported vaults
     /// @notice Iterates through supported vaults and redeems assets until the required amount of base tokens is obtained.
     /// @param baseTokens The amount of base tokens to redeem
-    function redeemRequiredBaseAssets (uint baseTokens) internal {
+    function _redeemRequiredBaseAssets (uint baseTokens) internal {
         uint baseTokensLeft = baseTokens;
         for (uint i = 0; i < assetsArr.length && baseTokensLeft > 0; i++) {
             IERC4626 vault = IERC4626(assetsArr[i].asset);

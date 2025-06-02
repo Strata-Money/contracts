@@ -90,12 +90,12 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
         emit WithdrawalsStateChanged(withdrawalsEnabled_);
     }
 
-    function onAfterDepositChecks () internal view {
+    function _onAfterDepositChecks () internal view {
         if (!depositsEnabled) {
             revert DepositsDisabled();
         }
     }
-    function onAfterWithdrawalChecks () internal view {
+    function _onAfterWithdrawalChecks () internal view {
         if (!withdrawalsEnabled) {
             revert WithdrawalsDisabled();
         }

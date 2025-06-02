@@ -72,13 +72,13 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
     function deposit(IERC20 asset, uint256 amount, address receiver) external returns (uint256) {
         address user = _msgSender();
         if (asset == sUSDe) {
-            return deposit_sUSDe(user, amount, receiver);
+            return _deposit_sUSDe(user, amount, receiver);
         }
         if (asset == USDe) {
-            return deposit_USDe(user, amount, receiver);
+            return _deposit_USDe(user, amount, receiver);
         }
         if (autoSwaps[address(asset)].router != address(0)) {
-            return deposit_viaSwap(user, asset, amount, receiver);
+            return _deposit_viaSwap(user, asset, amount, receiver);
         }
         IMetaVault vault = IMetaVault(address(pUSDe));
         if (vault.isAssetSupported(address(asset))) {
@@ -89,8 +89,8 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         revert InvalidAsset(address(asset));
     }
 
-    function deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
-        require(getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
+    function _deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
+        require(_getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
 
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(sUSDe, from, address(this), amount);
@@ -99,7 +99,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         return IMetaVault(address(pUSDe)).deposit(address(sUSDe), amount, receiver);
     }
 
-    function deposit_USDe (address from, uint256 amount, address receiver) internal returns (uint256) {
+    function _deposit_USDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
         if (from != address(this)) {
@@ -111,7 +111,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         return pUSDe.deposit(amount, receiver);
     }
 
-    function deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {
+    function _deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(token, from, address(this), amount);
         }
@@ -139,11 +139,11 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         ISwapRouter(swapInfo.router).exactInputSingle(params);
         uint256 amountOut = USDe.balanceOf(address(this)) - USDeBalance;
 
-        return deposit_USDe(address(this), amountOut, receiver);
+        return _deposit_USDe(address(this), amountOut, receiver);
 
     }
 
-    function getPhase () internal view returns (PreDepositPhase phase) {
+    function _getPhase () internal view returns (PreDepositPhase phase) {
         phase = PreDepositPhaser(address(pUSDe)).currentPhase();
     }
 }
