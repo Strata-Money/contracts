@@ -3,6 +3,7 @@ pragma solidity ^0.8.28;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {MetaVault} from "./MetaVault.sol";
@@ -176,7 +177,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
 
     function stakeUSDe(uint256 USDeAssets) internal {
         require(USDeAssets > 0, "EMPTY_STAKE");
-        USDe.approve(address(sUSDe), USDeAssets);
+        SafeERC20.forceApprove(USDe, address(sUSDe), USDeAssets);
         sUSDe.deposit(USDeAssets, address(this));
     }
 }

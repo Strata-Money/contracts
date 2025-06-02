@@ -55,7 +55,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(pUSDe, from, address(this), amount);
         }
-        pUSDe.approve(address(yUSDe), amount);
+        SafeERC20.forceApprove(pUSDe, address(yUSDe), amount);
         return yUSDe.deposit(amount, receiver);
     }
 

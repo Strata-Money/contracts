@@ -83,7 +83,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         IMetaVault vault = IMetaVault(address(pUSDe));
         if (vault.isAssetSupported(address(asset))) {
             SafeERC20.safeTransferFrom(asset, user, address(this), amount);
-            asset.approve(address(vault), amount);
+            SafeERC20.forceApprove(asset, address(vault), amount);
             return vault.deposit(address(asset), amount, receiver);
         }
         revert InvalidAsset(address(asset));
@@ -95,7 +95,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(sUSDe, from, address(this), amount);
         }
-        sUSDe.approve(address(pUSDe), amount);
+        SafeERC20.forceApprove(sUSDe, address(pUSDe), amount);
         return IMetaVault(address(pUSDe)).deposit(address(sUSDe), amount, receiver);
     }
 
@@ -107,7 +107,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             SafeERC20.safeTransferFrom(USDe, from, address(this), amount);
         }
 
-        USDe.approve(address(pUSDe), amount);
+        SafeERC20.forceApprove(USDe, address(pUSDe), amount);
         return pUSDe.deposit(amount, receiver);
     }
 
@@ -118,8 +118,8 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
         TAutoSwap memory swapInfo = autoSwaps[address(token)];
 
-         // Approve Uniswap router to spend Token
-        token.approve(swapInfo.router, amount);
+        // Approve Uniswap router to spend Token
+        SafeERC20.forceApprove(token, swapInfo.router, amount);
 
         // Calculate minimum amount out with 0.1% slippage
         uint256 amountOutMin = (amount * 999) / 1000;
