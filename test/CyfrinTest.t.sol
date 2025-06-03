@@ -16,7 +16,7 @@ import {console2} from "forge-std/console2.sol";
 contract CyfrinTest is Test {
 
     // USDe = Ethena Synthetic USD Token https://etherscan.io/address/0x4c9EDD5852cd905f086C759E8383e09bff1E68B3#code
-    MockUSDe public USDe; 
+    MockUSDe public USDe;
 
     // sUSDe = yield-bearing equivalent of USDe, staked into an ERC-4626 vault https://etherscan.io/token/0x9d39a5de30e57443bff2a8307a4256c8797a3497#code
     MockStakedUSDe public sUSDe;
@@ -80,7 +80,7 @@ contract CyfrinTest is Test {
         // fund users
         USDe.mint(innocentUser, userDeposit);
         USDe.mint(attacker, attackerDeposit);
-        
+
         // attacker front-runs first deposit by innocent user to:
         // 1) make an initial deposit
         vm.startPrank(attacker);
@@ -155,61 +155,39 @@ contract CyfrinTest is Test {
         assertEq(USDe.balanceOf(address(pUSDe)), 0);
         assertEq(USDe.balanceOf(address(sUSDe)), user1AmountInMainVault);
 
-        // create an additional supported ERC4626 vault
-        MockERC4626 newSupportedVault = new MockERC4626(USDe);
-        pUSDe.addVault(address(newSupportedVault));
-        // add eUSDe again since `startYieldPhase` removes it
+
+        // New vaults during YieldPhase are not allowed
+        vm.expectRevert();
         pUSDe.addVault(address(eUSDe));
 
-        // verify two additional vaults now suppported
-        assertTrue(pUSDe.isAssetSupported(address(eUSDe)));
-        assertTrue(pUSDe.isAssetSupported(address(newSupportedVault)));
-        
-        // user2 deposits $600 into each vault
-        uint256 user2AmountInEachSubVault = 600e18;
-        USDe.mint(user2, user2AmountInEachSubVault*2);
-        
-        vm.startPrank(user2);
-        USDe.approve(address(eUSDe), user2AmountInEachSubVault);
-        uint256 user2SubVaultSharesInEach = eUSDe.deposit(user2AmountInEachSubVault, user2);
-        USDe.approve(address(newSupportedVault), user2AmountInEachSubVault);
-        newSupportedVault.deposit(user2AmountInEachSubVault, user2);
-        vm.stopPrank();
 
-        // verify balances correct
-        assertEq(eUSDe.totalAssets(), user2AmountInEachSubVault);
-        assertEq(newSupportedVault.totalAssets(), user2AmountInEachSubVault);
+        // verify the vault is not supported
+        assertFalse(pUSDe.isAssetSupported(address(eUSDe)));
 
-        // user2 deposits using their shares via MetaVault::deposit
+        // user2 does 2 deposits, 600 USDe each, into pUSDe.
+        uint256 user2AmountInEveryDeposit = 600e18;
+        USDe.mint(user2, user2AmountInEveryDeposit*2);
+
         vm.startPrank(user2);
-        eUSDe.approve(address(pUSDe), user2SubVaultSharesInEach);
-        pUSDe.deposit(address(eUSDe), user2SubVaultSharesInEach, user2);
-        newSupportedVault.approve(address(pUSDe), user2SubVaultSharesInEach);
-        pUSDe.deposit(address(newSupportedVault), user2SubVaultSharesInEach, user2);
+        USDe.approve(address(pUSDe), user2AmountInEveryDeposit);
+        pUSDe.deposit(user2AmountInEveryDeposit, user2);
+
+        USDe.approve(address(pUSDe), user2AmountInEveryDeposit);
+        pUSDe.deposit(user2AmountInEveryDeposit, user2);
         vm.stopPrank();
 
         // verify main vault total assets includes everything
-        assertEq(pUSDe.totalAssets(), user1AmountInMainVault + user2AmountInEachSubVault*2);
+        assertEq(pUSDe.totalAssets(), user1AmountInMainVault + user2AmountInEveryDeposit*2);
         // main vault not carrying any USDe balance
         assertEq(USDe.balanceOf(address(pUSDe)), 0);
-        // user2 lost their subvault shares
-        assertEq(eUSDe.balanceOf(user2), 0);
-        assertEq(newSupportedVault.balanceOf(user2), 0);
-        // main vault gained the subvault shares
-        assertEq(eUSDe.balanceOf(address(pUSDe)), user2SubVaultSharesInEach);
-        assertEq(newSupportedVault.balanceOf(address(pUSDe)), user2SubVaultSharesInEach);
 
         // verify user2 entitled to withdraw their total token amount
-        assertEq(pUSDe.maxWithdraw(user2), user2AmountInEachSubVault*2);
+        assertEq(pUSDe.maxWithdraw(user2), user2AmountInEveryDeposit*2);
 
         // try and do it, reverts due to insufficient balance
         vm.startPrank(user2);
         vm.expectRevert(); // ERC20InsufficientBalance
-        pUSDe.withdraw(user2AmountInEachSubVault*2, user2, user2);
-
-        // try 1 wei more than largest deposit from user 1, fails for same reason
-        vm.expectRevert(); // ERC20InsufficientBalance
-        pUSDe.withdraw(user1AmountInMainVault+1, user2, user2);
+        pUSDe.withdraw(user2AmountInEveryDeposit*2 + 1, user2, user2);
 
         // can withdraw up to max deposit amount $1000
         pUSDe.withdraw(user1AmountInMainVault, user2, user2);
@@ -217,8 +195,7 @@ contract CyfrinTest is Test {
         // user2 still has $200 left to withdraw
         assertEq(pUSDe.maxWithdraw(user2), 200e18);
 
-        // trying to withdraw it reverts
-        vm.expectRevert(); // ERC20InsufficientBalance
+        // trying to withdraw
         pUSDe.withdraw(200e18, user2, user2);
 
         // can't withdraw anymore, even trying 1 wei will revert
@@ -319,7 +296,7 @@ contract CyfrinTest is Test {
         // user shares will equal deposited amount
         assertEq(user1MainVaultShares, user1AmountInMainVault);
         vm.stopPrank();
-        
+
         // admin triggers yield phase on main vault
         pUSDe.startYieldPhase();
         // totalAssets() still returns same amount as it is overridden in pUSDeVault
@@ -341,7 +318,7 @@ contract CyfrinTest is Test {
         sUSDe.transferInRewards(1 ether);
         skip(8 hours);
 
-        uint256 maxRedeem = pUSDe.maxRedeem(user1);        
+        uint256 maxRedeem = pUSDe.maxRedeem(user1);
         uint256 snap = vm.snapshot();
 
         // max redeem (less min shares) of pUSDe by account to sUSDe is successful
@@ -349,9 +326,9 @@ contract CyfrinTest is Test {
         pUSDe.redeem(address(sUSDe), maxRedeem - 0.1 ether, user1, user1);
         vm.stopPrank();
         assertEq(pUSDe.balanceOf(user1), 0.1 ether, "pUSDe balance of account after redeem should be min shares");
-        
+
         vm.revertTo(snap);
-        
+
         vm.startPrank(user1);
         pUSDe.redeem(address(USDe), maxRedeem - 0.1 ether, user1, user1);
         assertEq(pUSDe.balanceOf(user1), 0.1 ether, "pUSDe balance of account after redeem should be min shares");
@@ -363,7 +340,7 @@ contract CyfrinTest is Test {
 
         // user1 deposits into supporting vault
         USDe.mint(user1, amount);
-        
+
         vm.startPrank(user1);
         USDe.approve(address(eUSDe), amount);
         uint256 user1SubVaultShares = eUSDe.deposit(amount, user1);
@@ -422,12 +399,12 @@ contract CyfrinTest is Test {
         // admin pauses withdrawals
         pUSDe.setWithdrawalsEnabled(false);
 
-        // doesn't revert but it should since `MetaVault::redeem` uses `_withdraw`
-        // and withdraws are paused, so `maxRedeem` should return 0
-        assertEq(pUSDe.maxRedeem(user1), user1AmountInMainVault);
+        // so `maxRedeem` should return 0 on paused
+        assertEq(pUSDe.maxRedeem(user1), 0);
 
         // reverts with WithdrawalsDisabled
         vm.prank(user1);
+        vm.expectRevert();
         pUSDe.redeem(user1MainVaultShares, user1, user1);
 
         // https://eips.ethereum.org/EIPS/eip-4626 maxRedeem says:
@@ -452,17 +429,18 @@ contract CyfrinTest is Test {
         // admin pauses deposists
         pUSDe.setDepositsEnabled(false);
 
-        // should revert here as maxMint should return 0
-        // since deposits are paused and `MetaVault::mint` uses `_deposit`
-        assertEq(pUSDe.maxMint(user1), type(uint256).max);
+        // maxMint should return 0 when deposits paused
+        assertEq(pUSDe.maxMint(user1), 0);
 
         // attempt to mint to show the error
-        uint256 user1AmountInMainVault = 1000e18;
+        uint256 user1AmountInMainVault = 10e18;
         USDe.mint(user1, user1AmountInMainVault);
 
         vm.startPrank(user1);
         USDe.approve(address(pUSDe), user1AmountInMainVault);
+
         // reverts with DepositsDisabled since `MetaVault::mint` uses `_deposit`
+        vm.expectRevert();
         uint256 user1MainVaultShares = pUSDe.mint(user1AmountInMainVault, user1);
         vm.stopPrank();
 
@@ -490,23 +468,22 @@ contract CyfrinTest is Test {
         // supported vault was removed when initiating yield phase
         assertFalse(pUSDe.isAssetSupported(address(eUSDe)));
 
-        // but can be added back in?
+        // no vaults can be added during the yield phase
+        vm.expectRevert();
         pUSDe.addVault(address(eUSDe));
-        assertTrue(pUSDe.isAssetSupported(address(eUSDe)));
-
-        // what was the point of removing it if it can be re-added
-        // and used again during the yield phase?
+        assertFalse(pUSDe.isAssetSupported(address(eUSDe)));
     }
 
     function test_vaultSupportedWithDifferentUnderlyingAsset() external {
         // create ERC4626 vault with different underlying ERC20 asset
-        MockUSDe differentERC20 = new MockUSDe(); 
+        MockUSDe differentERC20 = new MockUSDe();
         MockERC4626 newSupportedVault = new MockERC4626(differentERC20);
 
         // verify pUSDe doesn't have same underlying asset as new vault
         assertNotEq(pUSDe.asset(), newSupportedVault.asset());
 
         // but still allows it to be added
+        vm.expectRevert();
         pUSDe.addVault(address(newSupportedVault));
 
         // this breaks `MetaVault::redeemRequiredBaseAssets` since
