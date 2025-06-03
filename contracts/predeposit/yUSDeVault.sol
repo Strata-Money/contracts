@@ -77,18 +77,11 @@ contract yUSDeVault is PreDepositVault {
     }
 
     function _deposit(address caller, address receiver, uint256 pUSDeAssets, uint256 shares) internal override {
-        if (!depositsEnabled) {
-            revert DepositsDisabled();
-        }
         super._deposit(caller, receiver, pUSDeAssets, shares);
         _onAfterDepositChecks();
     }
 
     function _withdraw(address caller, address receiver, address owner, uint256 pUSDeAssets, uint256 shares) internal override {
-        if (!withdrawalsEnabled) {
-            revert WithdrawalsDisabled();
-        }
-
         if (caller != owner) {
             _spendAllowance(owner, caller, shares);
         }
