@@ -288,5 +288,6 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
             }
         }
+        require(baseTokensLeft == 0, "InsufficientVaultBalance");
     }
 }
