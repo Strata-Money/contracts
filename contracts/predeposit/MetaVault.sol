@@ -205,7 +205,6 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     }
 
     function _addVaultInner (address vaultAddress) internal {
-        require(IERC20Metadata(vaultAddress).decimals() == IERC20Metadata(asset()).decimals(), "DECIMALS_MISMATCH");
         require(vaultAddress != asset(), "MAIN_ASSET");
         require(assetsMap[vaultAddress].asset == address(0), "DUPLICATE_ASSET");
         require(IERC4626(vaultAddress).asset() == asset(), "MAIN_ASSET_MISMATCH");
