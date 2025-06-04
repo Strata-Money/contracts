@@ -117,16 +117,17 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
 
         if (PreDepositPhase.YieldPhase == currentPhase) {
             // sUSDeAssets = sUSDeAssets + user_yield_sUSDe
-            assets += previewYield(caller, shares);
+            uint yield = previewYield(caller, shares);
+            uint sUSDeAssets = sUSDe.previewWithdraw(assets + yield);
 
-            uint sUSDeAssets = sUSDe.previewWithdraw(assets);
-
+            // Calls MetaVault::_withdraw
             _withdraw(
                 address(sUSDe),
                 caller,
                 receiver,
                 owner,
                 assets,
+                yield,
                 sUSDeAssets,
                 shares
             );

@@ -121,7 +121,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         }
 
         uint256 shares = previewWithdraw(baseAssets);
-        _withdraw(token, _msgSender(), receiver, owner, baseAssets, tokenAssets, shares);
+        _withdraw(token, _msgSender(), receiver, owner, baseAssets, 0, tokenAssets, shares);
         return shares;
     }
 
@@ -145,7 +145,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
         uint256 baseAssets = previewRedeem(shares);
         uint256 tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
-        _withdraw(token, _msgSender(), receiver, owner, baseAssets, tokenAssets, shares);
+        _withdraw(token, _msgSender(), receiver, owner, baseAssets, 0, tokenAssets, shares);
         return tokenAssets;
     }
 
@@ -155,7 +155,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param caller The address initiating the withdrawal
     /// @param receiver The address that will receive the withdrawn assets
     /// @param owner The address that owns the shares being burned
-    /// @param baseAssets The amount of base assets being withdrawn
+    /// @param baseAssets The amount of base assets being withdrawn (tracked in depositedBase)
+    /// @param baseAssetsYield The yield amount that is additionally withdrawn by eligible withdrawers
     /// @param tokenAssets The amount of token assets being withdrawn
     /// @param shares The number of shares to burn
     function _withdraw(
@@ -164,6 +165,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         address receiver,
         address owner,
         uint256 baseAssets,
+        uint256 baseAssetsYield,
         uint256 tokenAssets,
         uint256 shares
     ) internal virtual {
@@ -177,7 +179,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         SafeERC20.safeTransfer(IERC20(token), receiver, tokenAssets);
         _onAfterWithdrawalChecks();
 
-        emit Withdraw(caller, receiver, owner, baseAssets, shares);
+        emit Withdraw(caller, receiver, owner, baseAssets + baseAssetsYield, shares);
         emit OnMetaWithdraw(receiver, token, tokenAssets, shares);
     }
 
