@@ -19,7 +19,7 @@
   "homepage": "https://github.com/Strata-Money/contracts#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.22.19"
+    "hardhat": "^2.24.2"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-foundry": "^1.1.3",

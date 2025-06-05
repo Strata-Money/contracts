@@ -1,10 +1,10 @@
 {
-  "pUSDePreDepositModule#pUSDeDepositorLogic": "0xD60C58887ff8C2548507b5f471FCEC5349BE3205",
-  "pUSDePreDepositModule#pUSDeVaultLogic": "0x83A059170761de8d7D0C71a652D08aC96dbAa3e7",
-  "pUSDePreDepositModule#pUSDeVaultProxy": "0x1BE2C98Fb09f57c3907485deeB349882894C8215",
-  "pUSDePreDepositModule#pUSDeVault": "0x1BE2C98Fb09f57c3907485deeB349882894C8215",
-  "pUSDePreDepositModule#pUSDeVaultAdmin": "0x784A825436653d8722992180c253a84915D8f48a",
-  "pUSDePreDepositModule#pUSDeDepositorProxy": "0x5c081dfE6bF33098fd9cf3E90E78Aa1CEb25F309",
-  "pUSDePreDepositModule#pUSDeDepositor": "0x5c081dfE6bF33098fd9cf3E90E78Aa1CEb25F309",
-  "pUSDePreDepositModule#pUSDeDepositorAdmin": "0x531bdc9fBc628817Aae38E70073A53a64F4bd4b8"
+  "pUSDePreDepositModule#pUSDeDepositorLogic": "0xf2a461bbc1f2bA650805CAC9fE8E1e3d400dFBB7",
+  "pUSDePreDepositModule#pUSDeVaultLogic": "0x20C6f5b3edDEFcF661c7CCb402624fA585d63584",
+  "pUSDePreDepositModule#pUSDeVaultProxy": "0x345CFCe350c1C6Dc653B5f2E187d4f109E8C4B95",
+  "pUSDePreDepositModule#pUSDeVault": "0x345CFCe350c1C6Dc653B5f2E187d4f109E8C4B95",
+  "pUSDePreDepositModule#pUSDeVaultAdmin": "0x1974F95203D4C3a7dc2ddA90B2d7d59f4Aa7F10D",
+  "pUSDePreDepositModule#pUSDeDepositorProxy": "0x4084BBEc368FaF50beb08bdeFf39D5a4765b65C2",
+  "pUSDePreDepositModule#pUSDeDepositor": "0x4084BBEc368FaF50beb08bdeFf39D5a4765b65C2",
+  "pUSDePreDepositModule#pUSDeDepositorAdmin": "0x84434aA2C75F998fde45D69072b2678A84F8c956"
 }
