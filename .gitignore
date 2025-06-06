@@ -21,3 +21,8 @@ ignition/deployments/chain-31337
 /cache_forge
 /out
 /lib/forge-std
+
+# Coverage files
+crytic-export
+echidna*/
+medusa*/
