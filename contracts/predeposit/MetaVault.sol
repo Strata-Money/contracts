@@ -24,7 +24,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     TAsset[] public assetsArr;
 
     // Track the assets in the mapping for easier access
-    mapping(address => TAsset) public assetsMap;
+    mapping(address metaToken => TAsset metaTokenInfo) public assetsMap;
 
     /**
      * @dev See https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable#storage-gaps

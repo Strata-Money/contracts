@@ -31,8 +31,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         uint24 fee;
     }
 
-    // sourceToken => swapInfo
-    mapping (address => TAutoSwap) autoSwaps;
+    mapping (address sourceToken => TAutoSwap tokenSwapInfo) autoSwaps;
 
     function initialize(
         address owner_
