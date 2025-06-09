@@ -59,10 +59,11 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
     function _deposit_pUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
+        IERC4626 pUSDe_ = pUSDe;
         if (from != address(this)) {
-            SafeERC20.safeTransferFrom(pUSDe, from, address(this), amount);
+            SafeERC20.safeTransferFrom(pUSDe_, from, address(this), amount);
         }
-        SafeERC20.forceApprove(pUSDe, address(yUSDe), amount);
+        SafeERC20.forceApprove(pUSDe_, address(yUSDe), amount);
         return yUSDe.deposit(amount, receiver);
     }
 

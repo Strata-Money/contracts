@@ -21,6 +21,6 @@ abstract contract PreDepositPhaser is IPreDepositPhaser {
         require(_currentPhase != PreDepositPhase.YieldPhase, "ACTIVE_PHASE");
 
         _currentPhase = PreDepositPhase.YieldPhase;
-        emit PhaseStarted(_currentPhase);
+        emit PhaseStarted(PreDepositPhase.YieldPhase);
     }
 }

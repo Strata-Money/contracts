@@ -97,23 +97,28 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         require(amount > 0, "Deposit is zero");
         require(_getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
 
+        IERC4626 sUSDe_ = sUSDe;
+        IERC4626 pUSDe_ = pUSDe;
         if (from != address(this)) {
-            SafeERC20.safeTransferFrom(sUSDe, from, address(this), amount);
+            SafeERC20.safeTransferFrom(sUSDe_, from, address(this), amount);
         }
-        SafeERC20.forceApprove(sUSDe, address(pUSDe), amount);
-        return IMetaVault(address(pUSDe)).deposit(address(sUSDe), amount, receiver);
+        SafeERC20.forceApprove(sUSDe_, address(pUSDe_), amount);
+        return IMetaVault(address(pUSDe_)).deposit(address(sUSDe_), amount, receiver);
     }
 
     function _deposit_USDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
+        IERC20 USDe_ = USDe;
+        IERC4626 pUSDe_ = pUSDe;
+
         if (from != address(this)) {
             // Get USDe Tokens
-            SafeERC20.safeTransferFrom(USDe, from, address(this), amount);
+            SafeERC20.safeTransferFrom(USDe_, from, address(this), amount);
         }
 
-        SafeERC20.forceApprove(USDe, address(pUSDe), amount);
-        return pUSDe.deposit(amount, receiver);
+        SafeERC20.forceApprove(USDe_, address(pUSDe_), amount);
+        return pUSDe_.deposit(amount, receiver);
     }
 
     function _deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {
@@ -129,10 +134,11 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         // Calculate minimum amount out with 0.1% slippage
         uint256 amountOutMin = (amount * 999) / 1000;
 
-        uint256 USDeBalance = USDe.balanceOf(address(this));
+        IERC20 USDe_ = USDe;
+        uint256 USDeBalance = USDe_.balanceOf(address(this));
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: address(token),
-            tokenOut: address(USDe),
+            tokenOut: address(USDe_),
             fee: swapInfo.fee,
             recipient: address(this),
             deadline: block.timestamp + 15,
@@ -142,7 +148,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         });
 
         ISwapRouter(swapInfo.router).exactInputSingle(params);
-        uint256 amountOut = USDe.balanceOf(address(this)) - USDeBalance;
+        uint256 amountOut = USDe_.balanceOf(address(this)) - USDeBalance;
 
         return _deposit_USDe(address(this), amountOut, receiver);
 
