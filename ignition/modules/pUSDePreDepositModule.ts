@@ -17,7 +17,7 @@ const pUSDePreDepositModule = buildModule("pUSDePreDepositModule", (m) => {
     });
 
 
-    const pUSDeVaultInitialize = m.encodeFunctionCall(pUSDeVaultLogic, "initialize(address,address,address)", [
+    const pUSDeVaultInitialize = m.encodeFunctionCall(pUSDeVaultLogic, "initialize", [
         initialOwner_,
         USDe_,
         sUSDe_,

@@ -17,7 +17,7 @@ const yUSDePreDepositModule = buildModule("yUSDePreDepositModule", (m) => {
         id: "yUSDeVaultLogic"
     });
 
-    const yUSDeVaultInitialize = m.encodeFunctionCall(yUSDeVaultLogic, "initialize(address,address,address,address)", [
+    const yUSDeVaultInitialize = m.encodeFunctionCall(yUSDeVaultLogic, "initialize", [
         initialOwner_,
         USDe_,
         sUSDe_,

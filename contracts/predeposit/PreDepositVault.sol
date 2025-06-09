@@ -46,7 +46,7 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
         , IERC20 USDe_
         , IERC4626 sUSDe_
         , IERC20 stakedAsset
-    ) public virtual initializer {
+    ) internal virtual initializer {
         __ERC20_init(name, symbol);
         __ERC4626_init(stakedAsset);
         __Ownable_init(owner_);
