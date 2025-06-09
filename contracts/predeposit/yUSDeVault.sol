@@ -35,10 +35,9 @@ contract yUSDeVault is PreDepositVault {
         pUSDeVault = pUSDeVault_;
     }
 
-    function totalAccruedUSDe() public view returns (uint256) {
+    function totalAccruedUSDe() public view returns (uint256 USDeAssets) {
         uint256 pUSDeAssets = super.totalAssets();
-        uint256 USDeAssets = _convertAssetsToUSDe(pUSDeAssets, true);
-        return USDeAssets;
+        USDeAssets = _convertAssetsToUSDe(pUSDeAssets, true);
     }
 
     function _convertAssetsToUSDe (uint256 pUSDeAssets, bool withYield) internal view returns (uint256) {
@@ -59,10 +58,9 @@ contract yUSDeVault is PreDepositVault {
      * @param pUSDeAssets The amount of pUSDe assets to deposit
      * @return yUSDeShares The amount of yUSDe shares to be minted
      */
-    function previewDeposit(uint256 pUSDeAssets) public view override returns (uint256) {
+    function previewDeposit(uint256 pUSDeAssets) public view override returns (uint256 yUSDeShares) {
         uint256 underlyingUSDe = _convertAssetsToUSDe(pUSDeAssets, false);
-        uint256 yUSDeShares = _valueMulDiv(underlyingUSDe, totalAssets(), totalAccruedUSDe(), Math.Rounding.Floor);
-        return yUSDeShares;
+        yUSDeShares = _valueMulDiv(underlyingUSDe, totalAssets(), totalAccruedUSDe(), Math.Rounding.Floor);
     }
 
     /**
@@ -74,10 +72,9 @@ contract yUSDeVault is PreDepositVault {
      * @param yUSDeShares The amount of yUSDeShares to mint
      * @return pUSDeAssets The amount of pUSDe assets required to mint the specified yUSDeShares
      */
-    function previewMint(uint256 yUSDeShares) public view override returns (uint256) {
+    function previewMint(uint256 yUSDeShares) public view override returns (uint256 pUSDeAssets) {
         uint256 underlyingUSDe = _valueMulDiv(yUSDeShares, totalAccruedUSDe(), totalAssets(), Math.Rounding.Ceil);
-        uint256 pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
-        return pUSDeAssets;
+        pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
     }
 
     function currentPhase () public override view returns (PreDepositPhase) {
