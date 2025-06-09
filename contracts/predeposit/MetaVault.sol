@@ -265,10 +265,17 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
     /// @dev Internal method to redeem all assets from supported vaults
     /// @notice Iterates through all supported vaults and redeems their assets for the base token
-    function _redeemMetaVaults () internal {
-        while (assetsArr.length > 0) {
-            _removeVaultAndRedeemInner(assetsArr[0].asset);
+    function _redeemAndClearMetaVaults () internal {
+        // Redeem
+        for (uint256 i = assetsArr.length; i > 0; i--) {
+            address vaultAddress = assetsArr[i - 1].asset;
+            uint256 balance = IERC20(vaultAddress).balanceOf(address(this));
+            if (balance > 0) {
+                IERC4626(vaultAddress).redeem(balance, address(this), address(this));
+            }
         }
+        // Clean
+        delete assetsArr;
     }
 
     /// @dev Internal method to redeem a specific amount of base tokens from supported vaults

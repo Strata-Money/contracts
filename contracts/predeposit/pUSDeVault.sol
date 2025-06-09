@@ -171,7 +171,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     function startYieldPhase () external onlyOwner {
 
         _setYieldPhaseInner();
-        _redeemMetaVaults();
+        _redeemAndClearMetaVaults();
 
         uint256 USDeBalance = USDe.balanceOf(address(this));
         _stakeUSDe(USDeBalance);
