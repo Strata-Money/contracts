@@ -254,7 +254,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         TAsset memory emptyAsset;
         assetsMap[vaultAddress] = emptyAsset;
         uint length = assetsArr.length;
-        for (uint i = 0; i < length; i++) {
+        for (uint i; i < length; i++) {
             if (assetsArr[i].asset == vaultAddress) {
                 assetsArr[i] = assetsArr[length - 1];
                 assetsArr.pop();
@@ -276,7 +276,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param baseTokens The amount of base tokens to redeem
     function _redeemRequiredBaseAssets (uint baseTokens) internal {
         uint baseTokensLeft = baseTokens;
-        for (uint i = 0; i < assetsArr.length && baseTokensLeft > 0; i++) {
+        for (uint i; i < assetsArr.length && baseTokensLeft > 0; i++) {
             IERC4626 vault = IERC4626(assetsArr[i].asset);
             uint totalBaseTokens = vault.maxWithdraw(address(this));
             if (totalBaseTokens == 0) {
