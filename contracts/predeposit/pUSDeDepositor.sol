@@ -85,12 +85,9 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             return _deposit_viaSwap(user, asset, amount, receiver);
         }
         IMetaVault vault = IMetaVault(address(pUSDe));
-        if (vault.isAssetSupported(address(asset))) {
-            SafeERC20.safeTransferFrom(asset, user, address(this), amount);
-            SafeERC20.forceApprove(asset, address(vault), amount);
-            return vault.deposit(address(asset), amount, receiver);
-        }
-        revert InvalidAsset(address(asset));
+        SafeERC20.safeTransferFrom(asset, user, address(this), amount);
+        SafeERC20.forceApprove(asset, address(vault), amount);
+        return vault.deposit(address(asset), amount, receiver);
     }
 
     function _deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
