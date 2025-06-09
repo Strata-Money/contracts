@@ -69,7 +69,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
     function _deposit_pUSDeDepositor (address from, IERC20 asset, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
 
-        uint beforeAmount = asset.balanceOf(address(this));
+        uint256 beforeAmount = asset.balanceOf(address(this));
 
         if (from != address(this)) {
             // Get USDe Tokens
@@ -77,7 +77,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
         } else {
             require(beforeAmount >= amount, "Insufficient USDe amount");
         }
-        uint pUSDeShares = pUSDeDepositor.deposit(asset, amount, address(this));
+        uint256 pUSDeShares = pUSDeDepositor.deposit(asset, amount, address(this));
         return _deposit_pUSDe(address(this), pUSDeShares, receiver);
     }
 

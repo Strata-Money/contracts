@@ -35,17 +35,17 @@ contract yUSDeVault is PreDepositVault {
     }
 
     function totalAccruedUSDe() public view returns (uint256) {
-        uint pUSDeAssets = super.totalAssets();
-        uint USDeAssets = _convertAssetsToUSDe(pUSDeAssets, true);
+        uint256 pUSDeAssets = super.totalAssets();
+        uint256 USDeAssets = _convertAssetsToUSDe(pUSDeAssets, true);
         return USDeAssets;
     }
 
-    function _convertAssetsToUSDe (uint pUSDeAssets, bool withYield) internal view returns (uint256) {
+    function _convertAssetsToUSDe (uint256 pUSDeAssets, bool withYield) internal view returns (uint256) {
         if (pUSDeAssets == 0) {
             return 0;
         }
-        uint sUSDeAssets = pUSDeVault.previewRedeem(withYield ? address(this) : address(0), pUSDeAssets);
-        uint USDeAssets = sUSDe.previewRedeem(sUSDeAssets);
+        uint256 sUSDeAssets = pUSDeVault.previewRedeem(withYield ? address(this) : address(0), pUSDeAssets);
+        uint256 USDeAssets = sUSDe.previewRedeem(sUSDeAssets);
         return USDeAssets;
     }
 
@@ -59,8 +59,8 @@ contract yUSDeVault is PreDepositVault {
      * @return yUSDeShares The amount of yUSDe shares to be minted
      */
     function previewDeposit(uint256 pUSDeAssets) public view override returns (uint256) {
-        uint underlyingUSDe = _convertAssetsToUSDe(pUSDeAssets, false);
-        uint yUSDeShares = _valueMulDiv(underlyingUSDe, totalAssets(), totalAccruedUSDe(), Math.Rounding.Floor);
+        uint256 underlyingUSDe = _convertAssetsToUSDe(pUSDeAssets, false);
+        uint256 yUSDeShares = _valueMulDiv(underlyingUSDe, totalAssets(), totalAccruedUSDe(), Math.Rounding.Floor);
         return yUSDeShares;
     }
 
@@ -74,8 +74,8 @@ contract yUSDeVault is PreDepositVault {
      * @return pUSDeAssets The amount of pUSDe assets required to mint the specified yUSDeShares
      */
     function previewMint(uint256 yUSDeShares) public view override returns (uint256) {
-        uint underlyingUSDe = _valueMulDiv(yUSDeShares, totalAccruedUSDe(), totalAssets(), Math.Rounding.Ceil);
-        uint pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
+        uint256 underlyingUSDe = _valueMulDiv(yUSDeShares, totalAccruedUSDe(), totalAssets(), Math.Rounding.Ceil);
+        uint256 pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
         return pUSDeAssets;
     }
 

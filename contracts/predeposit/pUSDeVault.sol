@@ -60,16 +60,16 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     /// @custom:phase YieldPhase
     function previewYield(address caller, uint256 shares) public view virtual returns (uint256) {
         if (PreDepositPhase.YieldPhase == currentPhase && caller != address(0) && caller == address(yUSDe)) {
-            uint total_sUSDe = sUSDe.balanceOf(address(this));
-            uint total_USDe = sUSDe.previewRedeem(total_sUSDe);
+            uint256 total_sUSDe = sUSDe.balanceOf(address(this));
+            uint256 total_USDe = sUSDe.previewRedeem(total_sUSDe);
 
-            uint total_yield_USDe = total_USDe - Math.min(total_USDe, depositedBase);
+            uint256 total_yield_USDe = total_USDe - Math.min(total_USDe, depositedBase);
 
-            uint y_pUSDeShares = balanceOf(caller);
+            uint256 y_pUSDeShares = balanceOf(caller);
             if (y_pUSDeShares == 0) {
                 return 0;
             }
-            uint caller_yield_USDe = total_yield_USDe.mulDiv(shares, y_pUSDeShares, Math.Rounding.Floor);
+            uint256 caller_yield_USDe = total_yield_USDe.mulDiv(shares, y_pUSDeShares, Math.Rounding.Floor);
             return caller_yield_USDe;
         }
         return 0;
@@ -120,8 +120,8 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
 
         if (PreDepositPhase.YieldPhase == currentPhase) {
             // sUSDeAssets = sUSDeAssets + user_yield_sUSDe
-            uint yield = previewYield(caller, shares);
-            uint sUSDeAssets = sUSDe.convertToShares(assets + yield);
+            uint256 yield = previewYield(caller, shares);
+            uint256 sUSDeAssets = sUSDe.convertToShares(assets + yield);
 
             // Calls MetaVault::_withdraw
             _withdraw(
@@ -140,7 +140,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         require(PreDepositPhase.PointsPhase == currentPhase, "INVALID_PHASE");
         require(assets <= depositedBase, "INSUFFICIENT_ASSETS");
 
-        uint USDeBalance = USDe.balanceOf(address(this));
+        uint256 USDeBalance = USDe.balanceOf(address(this));
         if (assets > USDeBalance) {
             // Transfer-in from multi-vaults
             _redeemRequiredBaseAssets(assets - USDeBalance);
@@ -173,7 +173,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         _setYieldPhaseInner();
         _redeemMetaVaults();
 
-        uint USDeBalance = USDe.balanceOf(address(this));
+        uint256 USDeBalance = USDe.balanceOf(address(this));
         _stakeUSDe(USDeBalance);
 
         _addVaultInner(address(sUSDe));

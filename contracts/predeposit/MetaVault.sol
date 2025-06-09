@@ -59,8 +59,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         }
         _requireActiveVault(token);
 
-        uint baseAssets = IERC4626(token).previewRedeem(tokenAssets);
-        uint shares = previewDeposit(baseAssets);
+        uint256 baseAssets = IERC4626(token).previewRedeem(tokenAssets);
+        uint256 shares = previewDeposit(baseAssets);
         _deposit(token, _msgSender(), receiver, baseAssets, tokenAssets, shares);
         return shares;
     }
@@ -76,8 +76,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         }
         _requireActiveVault(token);
 
-        uint baseAssets = previewMint(shares);
-        uint tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
+        uint256 baseAssets = previewMint(shares);
+        uint256 tokenAssets = IERC4626(token).previewWithdraw(baseAssets);
         _deposit(token, _msgSender(), receiver, baseAssets, tokenAssets, shares);
         return tokenAssets;
     }
@@ -245,7 +245,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
 
     function _removeVaultAndRedeemInner (address vaultAddress) internal {
         // Redeem
-        uint balance = IERC20(vaultAddress).balanceOf(address(this));
+        uint256 balance = IERC20(vaultAddress).balanceOf(address(this));
         if (balance > 0) {
             IERC4626(vaultAddress).redeem(balance, address(this), address(this));
         }
@@ -253,8 +253,8 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         // Clean
         TAsset memory emptyAsset;
         assetsMap[vaultAddress] = emptyAsset;
-        uint length = assetsArr.length;
-        for (uint i; i < length; i++) {
+        uint256 length = assetsArr.length;
+        for (uint256 i; i < length; i++) {
             if (assetsArr[i].asset == vaultAddress) {
                 assetsArr[i] = assetsArr[length - 1];
                 assetsArr.pop();
@@ -274,15 +274,15 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @dev Internal method to redeem a specific amount of base tokens from supported vaults
     /// @notice Iterates through supported vaults and redeems assets until the required amount of base tokens is obtained.
     /// @param baseTokens The amount of base tokens to redeem
-    function _redeemRequiredBaseAssets (uint baseTokens) internal {
-        uint baseTokensLeft = baseTokens;
-        for (uint i; i < assetsArr.length && baseTokensLeft > 0; i++) {
+    function _redeemRequiredBaseAssets (uint256 baseTokens) internal {
+        uint256 baseTokensLeft = baseTokens;
+        for (uint256 i; i < assetsArr.length && baseTokensLeft > 0; i++) {
             IERC4626 vault = IERC4626(assetsArr[i].asset);
-            uint totalBaseTokens = vault.maxWithdraw(address(this));
+            uint256 totalBaseTokens = vault.maxWithdraw(address(this));
             if (totalBaseTokens == 0) {
                 continue;
             }
-            uint withdrawAmount = Math.min(baseTokensLeft, totalBaseTokens);
+            uint256 withdrawAmount = Math.min(baseTokensLeft, totalBaseTokens);
             // In at least one expected edge case: We ignore any withdrawal issues from the 3rd party vault and try the next one.
             try vault.withdraw(withdrawAmount, address(this), address(this)) {
                 baseTokensLeft -= withdrawAmount;
