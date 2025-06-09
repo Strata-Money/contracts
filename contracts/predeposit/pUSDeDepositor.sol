@@ -95,10 +95,12 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
     function _deposit_sUSDe (address from, uint256 amount, address receiver) internal returns (uint256) {
         require(amount > 0, "Deposit is zero");
-        require(_getPhase() == PreDepositPhase.YieldPhase, "INVALID_PHASE");
 
         IERC4626 sUSDe_ = sUSDe;
         IERC4626 pUSDe_ = pUSDe;
+        PreDepositPhase phase = PreDepositPhaser(address(pUSDe_)).currentPhase();
+        require(phase == PreDepositPhase.YieldPhase, "INVALID_PHASE");
+
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(sUSDe_, from, address(this), amount);
         }
@@ -151,10 +153,6 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         uint256 amountOut = USDe_.balanceOf(address(this)) - USDeBalance;
 
         return _deposit_USDe(address(this), amountOut, receiver);
-
     }
 
-    function _getPhase () internal view returns (PreDepositPhase phase) {
-        phase = PreDepositPhaser(address(pUSDe)).currentPhase();
-    }
 }
