@@ -41,6 +41,9 @@ contract yUSDeVault is PreDepositVault {
     }
 
     function _convertAssetsToUSDe (uint pUSDeAssets, bool withYield) internal view returns (uint256) {
+        if (pUSDeAssets == 0) {
+            return 0;
+        }
         uint sUSDeAssets = pUSDeVault.previewRedeem(withYield ? address(this) : address(0), pUSDeAssets);
         uint USDeAssets = sUSDe.previewRedeem(sUSDeAssets);
         return USDeAssets;

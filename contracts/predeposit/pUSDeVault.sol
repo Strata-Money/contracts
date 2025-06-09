@@ -59,13 +59,16 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     /// @return uint256 The previewed yield in USDe, or 0 if conditions are not met
     /// @custom:phase YieldPhase
     function previewYield(address caller, uint256 shares) public view virtual returns (uint256) {
-        if (PreDepositPhase.YieldPhase == currentPhase && caller == address(yUSDe)) {
+        if (PreDepositPhase.YieldPhase == currentPhase && caller != address(0) && caller == address(yUSDe)) {
             uint total_sUSDe = sUSDe.balanceOf(address(this));
             uint total_USDe = sUSDe.previewRedeem(total_sUSDe);
 
             uint total_yield_USDe = total_USDe - Math.min(total_USDe, depositedBase);
 
             uint y_pUSDeShares = balanceOf(caller);
+            if (y_pUSDeShares == 0) {
+                return 0;
+            }
             uint caller_yield_USDe = total_yield_USDe.mulDiv(shares, y_pUSDeShares, Math.Rounding.Floor);
             return caller_yield_USDe;
         }
