@@ -5,3 +5,7 @@ enum PreDepositPhase {
     PointsPhase,
     YieldPhase
 }
+
+interface IPreDepositPhaser {
+    function currentPhase() external view returns (PreDepositPhase);
+}

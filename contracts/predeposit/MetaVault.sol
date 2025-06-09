@@ -202,7 +202,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param vaultAddress The address of the ERC4626 Vault to be added
     /// @custom:permissions onlyOwner
     function addVault(address vaultAddress) external onlyOwner {
-        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
+        require(PreDepositPhase.PointsPhase == _currentPhase, "POINTS_PHASE_ONLY");
         _addVaultInner(vaultAddress);
     }
 
@@ -223,7 +223,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param vaultAddress The address of the ERC4626 Vault to be removed
     /// @custom:permissions onlyOwner
     function removeVault(address vaultAddress) external onlyOwner {
-        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
+        require(PreDepositPhase.PointsPhase == _currentPhase, "POINTS_PHASE_ONLY");
         _requireSupportedVault(vaultAddress);
         _removeVaultAndRedeemInner(vaultAddress);
 
@@ -237,7 +237,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param paused True to pause the vault, false to resume it
     /// @custom:permissions onlyOwner
     function setVaultPauseState(address vaultAddress, bool paused) external onlyOwner {
-        require(PreDepositPhase.PointsPhase == currentPhase, "POINTS_PHASE_ONLY");
+        require(PreDepositPhase.PointsPhase == _currentPhase, "POINTS_PHASE_ONLY");
         _requireSupportedVault(vaultAddress);
         assetsMap[vaultAddress].paused = paused;
         emit OnVaultPausedStateChanged(vaultAddress, paused);

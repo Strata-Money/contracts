@@ -10,6 +10,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {PreDepositVault} from "./PreDepositVault.sol";
 
 import {IERC4626YieldVault} from "../interfaces/IERC4626Yield.sol";
+import {PreDepositPhase, IPreDepositPhaser} from "../interfaces/IPhase.sol";
 
 contract yUSDeVault is PreDepositVault {
     using Math for uint256;
@@ -77,6 +78,10 @@ contract yUSDeVault is PreDepositVault {
         uint256 underlyingUSDe = _valueMulDiv(yUSDeShares, totalAccruedUSDe(), totalAssets(), Math.Rounding.Ceil);
         uint256 pUSDeAssets = pUSDeVault.previewDeposit(underlyingUSDe);
         return pUSDeAssets;
+    }
+
+    function currentPhase () public override view returns (PreDepositPhase) {
+        return IPreDepositPhaser(address(pUSDeVault)).currentPhase();
     }
 
     function _deposit(address caller, address receiver, uint256 pUSDeAssets, uint256 shares) internal override {

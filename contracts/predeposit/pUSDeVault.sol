@@ -59,7 +59,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     /// @return uint256 The previewed yield in USDe, or 0 if conditions are not met
     /// @custom:phase YieldPhase
     function previewYield(address caller, uint256 shares) public view virtual returns (uint256) {
-        if (PreDepositPhase.YieldPhase == currentPhase && caller != address(0) && caller == address(yUSDe)) {
+        if (PreDepositPhase.YieldPhase == _currentPhase && caller != address(0) && caller == address(yUSDe)) {
             uint256 total_sUSDe = sUSDe.balanceOf(address(this));
             uint256 total_USDe = sUSDe.previewRedeem(total_sUSDe);
 
@@ -98,7 +98,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
 
         super._deposit(caller, receiver, assets, shares);
 
-        if (PreDepositPhase.YieldPhase == currentPhase) {
+        if (PreDepositPhase.YieldPhase == _currentPhase) {
             _stakeUSDe(assets);
         }
         depositedBase += assets;
@@ -118,7 +118,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
     /// @custom:yield In YieldPhase, includes any accrued yield for eligible callers
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares) internal override {
 
-        if (PreDepositPhase.YieldPhase == currentPhase) {
+        if (PreDepositPhase.YieldPhase == _currentPhase) {
             // sUSDeAssets = sUSDeAssets + user_yield_sUSDe
             uint256 yield = previewYield(caller, shares);
             uint256 sUSDeAssets = sUSDe.convertToShares(assets + yield);
@@ -137,7 +137,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
             return;
         }
 
-        require(PreDepositPhase.PointsPhase == currentPhase, "INVALID_PHASE");
+        require(PreDepositPhase.PointsPhase == _currentPhase, "INVALID_PHASE");
         require(assets <= depositedBase, "INSUFFICIENT_ASSETS");
 
         uint256 USDeBalance = USDe.balanceOf(address(this));
