@@ -30,7 +30,7 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
         , IERC4626 pUSDe_
         , IDepositor pUSDeDepositor_
     ) public virtual initializer {
-        __Ownable_init(owner_);
+        __Ownable_init_unchained(owner_);
 
         yUSDe = yUSDe_;
         pUSDe = pUSDe_;

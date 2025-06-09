@@ -44,7 +44,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         , IERC4626 sUSDe_
         , IERC4626 pUSDe_
     ) public virtual initializer {
-        __Ownable_init(owner_);
+        __Ownable_init_unchained(owner_);
 
         USDe = USDe_;
         sUSDe = sUSDe_;

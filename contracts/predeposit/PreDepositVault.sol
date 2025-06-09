@@ -39,17 +39,17 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
         _disableInitializers();
     }
 
-    function initialize(
+    function __init_Vault(
         address owner_
         , string memory name
         , string memory symbol
         , IERC20 USDe_
         , IERC4626 sUSDe_
         , IERC20 stakedAsset
-    ) internal virtual initializer {
-        __ERC20_init(name, symbol);
-        __ERC4626_init(stakedAsset);
-        __Ownable_init(owner_);
+    ) internal virtual onlyInitializing {
+        __ERC20_init_unchained(name, symbol);
+        __ERC4626_init_unchained(stakedAsset);
+        __Ownable_init_unchained(owner_);
 
         USDe = USDe_;
         sUSDe = sUSDe_;

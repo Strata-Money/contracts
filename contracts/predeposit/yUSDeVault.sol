@@ -23,7 +23,7 @@ contract yUSDeVault is PreDepositVault {
         , IERC4626 sUSDe_
         , IERC4626YieldVault pUSDeVault_
     ) external virtual initializer {
-        super.initialize(
+        __init_Vault(
             owner_,
             "PreDeposit Strata Yield USDe",
             "yUSDe",

@@ -36,7 +36,7 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
         , IERC20 USDe_
         , IERC4626 sUSDe_
     ) external virtual initializer {
-        super.initialize(
+        __init_Vault(
             owner_,
             "PreDeposit Strata Points USDe",
             "pUSDe",
