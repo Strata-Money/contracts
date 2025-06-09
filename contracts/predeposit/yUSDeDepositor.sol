@@ -19,6 +19,11 @@ contract yUSDeDepositor is IDepositor, OwnableUpgradeable  {
 
     error InvalidAsset(address asset);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         address owner_
         , IERC4626 yUSDe_

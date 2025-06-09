@@ -33,6 +33,11 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
     mapping (address sourceToken => TAutoSwap tokenSwapInfo) autoSwaps;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         address owner_
         , IERC20 USDe_

@@ -34,6 +34,10 @@ abstract contract PreDepositVault is ERC4626Upgradeable, OwnableUpgradeable, Pre
     event DepositsStateChanged(bool enabled);
     event WithdrawalsStateChanged(bool enabled);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(
         address owner_
