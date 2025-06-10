@@ -70,9 +70,9 @@ contract pUSDeVault is IERC4626Yield, MetaVault {
                 return 0;
             }
             caller_yield_USDe = total_yield_USDe.mulDiv(shares, y_pUSDeShares, Math.Rounding.Floor);
-            return caller_yield_USDe;
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     /// @notice Previews the amount of assets that would be redeemed for a given number of shares, including any eligible rewards
