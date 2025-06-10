@@ -153,6 +153,13 @@ describe("PreDeposit", function () {
             console.log(`Upgrade PHASE`);
             await pUSDeVault.startYieldPhase();
 
+            expect(Array.from(await pUSDeVault.assetsArr(0)))
+                .to.have.same.members([await sUSDe.getAddress(), 0n, false]);
+
+            expect(Array.from(await pUSDeVault.assetsMap(await eUSDe.getAddress())))
+                .to.have.same.members(['0x0000000000000000000000000000000000000000', 0n, false]);
+
+
             await $x.check(`
 
                 balance: pUSDe 0 USDe

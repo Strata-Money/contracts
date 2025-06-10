@@ -251,8 +251,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
         }
 
         // Clean
-        TAsset memory emptyAsset;
-        assetsMap[vaultAddress] = emptyAsset;
+        delete assetsMap[vaultAddress];
         uint256 length = assetsArr.length;
         for (uint256 i; i < length; i++) {
             if (assetsArr[i].asset == vaultAddress) {
@@ -266,15 +265,19 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @dev Internal method to redeem all assets from supported vaults
     /// @notice Iterates through all supported vaults and redeems their assets for the base token
     function _redeemAndClearMetaVaults () internal {
+
+        uint256 length = assetsArr.length;
         // Redeem
-        for (uint256 i = assetsArr.length; i > 0; i--) {
-            address vaultAddress = assetsArr[i - 1].asset;
+        for (uint256 i; i < length; i++) {
+            address vaultAddress = assetsArr[i].asset;
             uint256 balance = IERC20(vaultAddress).balanceOf(address(this));
             if (balance > 0) {
                 IERC4626(vaultAddress).redeem(balance, address(this), address(this));
             }
+            // Clean map entry
+            delete assetsMap[vaultAddress];
         }
-        // Clean
+        // Clean array
         delete assetsArr;
     }
 
