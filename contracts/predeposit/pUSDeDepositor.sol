@@ -29,6 +29,15 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         uint24 engine;
         // Fee Tier, 0 for default (100=(0.01%))
         uint24 fee;
+        // Default minimum return (1000 = 100%), assuming 1:1 price
+        uint24 minimumReturnPercentage;
+    }
+
+    struct TDepositParams {
+        // Optional, default 0 = no deadline
+        uint256 swapDeadline;
+        // Optional, default 0 = calculate return based on minimumReturnPercentage
+        uint256 swapAmountOutMinimum;
     }
 
     mapping (address sourceToken => TAutoSwap tokenSwapInfo) autoSwaps;
@@ -74,6 +83,18 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
      * @return uint256 The amount of pUSDe tokens minted
      */
     function deposit(IERC20 asset, uint256 amount, address receiver) external returns (uint256) {
+        return _deposit(asset, amount, receiver, TDepositParams(0, 0));
+    }
+
+    /**
+     * @notice Includes deposit parameters, e.g. to configure the swap
+     * @return uint256 The amount of pUSDe tokens minted
+     */
+    function deposit(IERC20 asset, uint256 amount, address receiver, TDepositParams calldata params) external returns (uint256) {
+        return _deposit(asset, amount, receiver, params);
+    }
+
+    function _deposit(IERC20 asset, uint256 amount, address receiver, TDepositParams memory params) internal returns (uint256) {
         address user = _msgSender();
         if (asset == sUSDe) {
             return _deposit_sUSDe(user, amount, receiver);
@@ -82,7 +103,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             return _deposit_USDe(user, amount, receiver);
         }
         if (autoSwaps[address(asset)].router != address(0)) {
-            return _deposit_viaSwap(user, asset, amount, receiver);
+            return _deposit_viaSwap(user, asset, amount, receiver, params);
         }
         IMetaVault vault = IMetaVault(address(pUSDe));
         SafeERC20.safeTransferFrom(asset, user, address(this), amount);
@@ -120,7 +141,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         return pUSDe_.deposit(amount, receiver);
     }
 
-    function _deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver) internal returns (uint256) {
+    function _deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver, TDepositParams memory depositParams) internal returns (uint256) {
         if (from != address(this)) {
             SafeERC20.safeTransferFrom(token, from, address(this), amount);
         }
@@ -130,8 +151,16 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         // Approve Uniswap router to spend Token
         SafeERC20.forceApprove(token, swapInfo.router, amount);
 
-        // Calculate minimum amount out with 0.1% slippage
-        uint256 amountOutMin = (amount * 999) / 1000;
+        uint256 amountOutMin = depositParams.swapAmountOutMinimum;
+        if (amountOutMin == 0) {
+            // Calculate minimum amount out with 0.1% slippage, assuming 1:1 price
+            amountOutMin = (amount * swapInfo.minimumReturnPercentage) / 1000;
+        }
+        uint256 deadline = depositParams.swapDeadline;
+        if (deadline == 0) {
+            // Use future to effectively skip deadline checks
+            deadline = block.timestamp + 15;
+        }
 
         IERC20 USDe_ = USDe;
         uint256 USDeBalance = USDe_.balanceOf(address(this));
@@ -140,7 +169,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
             tokenOut: address(USDe_),
             fee: swapInfo.fee,
             recipient: address(this),
-            deadline: block.timestamp + 15,
+            deadline: deadline,
             amountIn: amount,
             amountOutMinimum: amountOutMin,
             sqrtPriceLimitX96: 0
