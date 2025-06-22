@@ -17,6 +17,11 @@ const config: HardhatUserConfig = {
       }
   },
   networks: {
+    eth: {
+      url: "https://ethereum-rpc.publicnode.com",
+      accounts: [ process.env.ETH_DEPLOYER! ],
+      gasMultiplier: 1.3,
+    },
     hoodi: {
       url: "https://ethereum-hoodi-rpc.publicnode.com",
       accounts: [ process.env.DEPLOYER! ],
@@ -24,6 +29,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      eth: process.env.ETHERSCAN_API_KEY!,
       hoodi: process.env.ETHERSCAN_API_KEY!,
     },
     customChains: [
@@ -33,6 +39,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api-hoodi.etherscan.io/api",
           browserURL: "https://hoodi.etherscan.io"
+        }
+      },
+      {
+        network: "eth",
+        chainId: 1,
+        urls: {
+          apiURL: "https://api.etherscan.io/api",
+          browserURL: "https://etherscan.io"
         }
       }
     ]

@@ -7,6 +7,10 @@ node_modules
 /ignition/deployments/chain-560048/*
 !/ignition/deployments/chain-560048/deployed_addresses.json
 
+/ignition/deployments/chain-1/*
+!/ignition/deployments/chain-1/deployed_addresses.json
+
+
 # TypeChain files
 /typechain
 /typechain-types

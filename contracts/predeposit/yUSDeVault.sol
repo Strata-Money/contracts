@@ -25,7 +25,7 @@ contract yUSDeVault is PreDepositVault {
     ) external virtual initializer {
         __init_Vault(
             owner_,
-            "PreDeposit Strata Yield USDe",
+            "Strata Pre-deposit Yield Token",
             "yUSDe",
             USDe_,
             sUSDe_,
