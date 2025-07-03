@@ -42,7 +42,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     event OnVaultPausedStateChanged(address indexed token, bool paused);
     event OnMetaDeposit(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
     event OnMetaWithdraw(address indexed owner, address indexed token, uint256 tokenAssets, uint256 shares);
-
+    event OnVaultWithdrawalFailed(address vault, uint256 amount);
 
     function isAssetSupported(address token) external view returns (bool) {
         return token == asset() || assetsMap[token].asset != address(0);
@@ -301,7 +301,7 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
             try vault.withdraw(withdrawAmount, address(this), address(this)) {
                 baseTokensLeft -= withdrawAmount;
             } catch {
-
+                emit OnVaultWithdrawalFailed(address(vault), withdrawAmount);
             }
         }
         require(baseTokensLeft == 0, "InsufficientVaultBalance");
