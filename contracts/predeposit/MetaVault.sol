@@ -92,6 +92,10 @@ abstract contract MetaVault is IMetaVault, PreDepositVault {
     /// @param shares The number of shares to mint
     function _deposit(address token, address caller, address receiver, uint256 baseAssets, uint256 tokenAssets, uint256 shares) internal virtual {
 
+        // Ensure the caller can withdraw the deposited tokenAssets amount
+        uint256 maxTokenToBaseAssetsWithdraw = IERC4626(token).maxWithdraw(caller);
+        require(maxTokenToBaseAssetsWithdraw >= baseAssets, "MetaVaultExceededMaxWithdraw");
+
         depositedBase += baseAssets;
 
         SafeERC20.safeTransferFrom(IERC20(token), caller, address(this), tokenAssets);
