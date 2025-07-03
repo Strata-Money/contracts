@@ -25,8 +25,6 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
 
     struct TAutoSwap {
         address router;
-        // Supported DEX. 0 for default (Uniswap v3)
-        uint24 engine;
         // Fee Tier, 0 for default (100=(0.01%))
         uint24 fee;
         // Default minimum return (1000 = 100%), assuming 1:1 price
@@ -64,9 +62,14 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
      * @notice Adds or clears the swap information for a given token
      * @dev This function allows the owner to set or update the swap parameters for a specific token
      * @param token The ERC20 token address for which to update swap info
-     * @param swapInfo The new swap information to set, including router, engine, and fee
+     * @param swapInfo The new swap information to set, including router and fee
      */
     function updateSwapInfo (IERC20 token, TAutoSwap calldata swapInfo) external onlyOwner() {
+        require(address(token) != address(0), "ZERO_ADDRESS");
+        require(swapInfo.router != address(0), "ZERO_ADDRESS");
+        require(100 <= swapInfo.fee && swapInfo.fee <= 10000, "INVALID_FEE_TIER");
+        require(900 <= swapInfo.minimumReturnPercentage && swapInfo.minimumReturnPercentage <= 1000, "INVALID_RETURN_PERCENTAGE");
+
         autoSwaps[address(token)] = swapInfo;
         emit SwapInfoChanged(address(token));
     }
