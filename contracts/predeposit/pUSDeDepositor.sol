@@ -119,9 +119,7 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
         PreDepositPhase phase = PreDepositPhaser(address(pUSDe_)).currentPhase();
         require(phase == PreDepositPhase.YieldPhase, "INVALID_PHASE");
 
-        if (from != address(this)) {
-            SafeERC20.safeTransferFrom(sUSDe_, from, address(this), amount);
-        }
+        SafeERC20.safeTransferFrom(sUSDe_, from, address(this), amount);
         SafeERC20.forceApprove(sUSDe_, address(pUSDe_), amount);
         return IMetaVault(address(pUSDe_)).deposit(address(sUSDe_), amount, receiver);
     }
@@ -142,9 +140,8 @@ contract pUSDeDepositor is IDepositor, OwnableUpgradeable {
     }
 
     function _deposit_viaSwap (address from, IERC20 token, uint256 amount, address receiver, TDepositParams memory depositParams) internal returns (uint256) {
-        if (from != address(this)) {
-            SafeERC20.safeTransferFrom(token, from, address(this), amount);
-        }
+
+        SafeERC20.safeTransferFrom(token, from, address(this), amount);
 
         TAutoSwap memory swapInfo = autoSwaps[address(token)];
 
