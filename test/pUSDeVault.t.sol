@@ -86,6 +86,9 @@ contract pUSDeVaultTest is Test {
     }
 
     function test_duplicateVaults() public {
+        assertTrue(pUSDe.isAssetSupported(address(eUSDe)));
+
+        vm.expectRevert();
         pUSDe.addVault(address(eUSDe));
         pUSDe.removeVault(address(eUSDe));
         assertFalse(pUSDe.isAssetSupported(address(eUSDe)));
