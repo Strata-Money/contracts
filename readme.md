@@ -1,6 +1,10 @@
 # Strata contracts
 
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/CuZPw4nX5nC1pEn3Ea9opp/Fc4365omRPYr1x82FJDJvp/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/CuZPw4nX5nC1pEn3Ea9opp/Fc4365omRPYr1x82FJDJvp/tree/master)
+
+
+
 Introduction
 ----------
 
