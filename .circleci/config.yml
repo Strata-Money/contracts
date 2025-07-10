@@ -12,6 +12,18 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
       - run:
+          name: Install Foundry
+          command: |
+            curl -L https://foundry.paradigm.xyz | bash || true
+            export PATH="$PATH:/home/circleci/.foundry/bin"
+            foundryup
+      - run:
+          name: Update PATH for Foundry
+          command: echo 'export PATH=$PATH:/home/circleci/.foundry/bin' >> $BASH_ENV
+      - run:
+          name: Run tests
+          command: forge --version
+      - run:
           name: Run tests
           command: npm run test
 
